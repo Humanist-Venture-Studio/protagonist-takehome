@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Plan para solicitar enfermería en Example County College · Protagonist</title>
+<!--protagonist:fonts-->
+<style>
+/* Protagonist document styles. Keep this block as it is; write content with the classes below. */
+:root{--paper:#FFFCF4;--ink:#17130F;--muted:#5C534A;--cobalt:#2B3FF6;--sun:#FFD43B;--tomato:#FF5533;--blush:#FFC6DF;--line:#E6DDCF;--white:#FFFFFF;
+  --f-poster:"Anton","Impact","Arial Narrow",sans-serif;--f-body:"Karla","Trebuchet MS","Segoe UI",sans-serif;--f-marker:"Permanent Marker","Comic Sans MS",cursive}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:400 17.5px/1.55 var(--f-body)}
+.page{max-width:1040px;margin:0 auto;padding:28px 20px 56px}
+@media (min-width:720px){.page{padding:40px 44px 72px}body{font-size:18px}}
+.prose,.prose-width{max-width:68ch}
+h1,h2,h3{margin:0;font-weight:400;line-height:1.02}
+h1,h2{font-family:var(--f-poster);text-transform:uppercase;letter-spacing:.005em}
+h1{font-size:clamp(34px,8vw,54px);margin:14px 0 12px;overflow-wrap:anywhere}
+h2{font-size:clamp(25px,5vw,30px);margin:48px 0 14px;display:flex;align-items:center;gap:12px}
+h2::before{content:"";flex:none;width:14px;height:14px;border-radius:4px;background:var(--cobalt);transform:rotate(45deg)}
+h3{font-weight:800;font-size:21px;line-height:1.2;margin:0 0 6px}
+p{margin:0 0 14px}ul,ol{margin:0 0 14px;padding-left:1.25em}li{margin:4px 0}
+a{color:var(--cobalt);text-underline-offset:3px;text-decoration-thickness:1.5px;overflow-wrap:anywhere}
+strong{font-weight:800}
+.hl{background:linear-gradient(transparent 58%,var(--sun) 58%);padding:0 .1em}
+/* Cover */
+.brand{display:inline-flex;align-items:center;gap:10px;font-weight:800;font-size:19px;letter-spacing:-.02em}
+.brand svg{width:30px;height:30px;transform:rotate(-6deg)}
+.kicker{display:inline-block;margin-top:26px;font-weight:800;font-size:14px;letter-spacing:.08em;text-transform:uppercase;background:var(--ink);color:var(--paper);padding:4px 10px;border-radius:6px}
+.meta{color:var(--muted);font-size:15.5px;margin:0}
+.meta span+span:not(.status)::before{content:" · "}
+.meta .status{margin-left:8px}
+.status{display:inline-block;border:2px solid var(--ink);border-radius:99px;padding:1px 10px;font-weight:800;font-size:13px;letter-spacing:.04em;text-transform:uppercase;vertical-align:2px}
+/* The answer: one per document */
+.answer{margin:28px 0 8px;background:var(--sun);border:2.5px solid var(--ink);border-radius:18px;padding:20px 22px;box-shadow:6px 6px 0 var(--ink);transform:rotate(-.6deg)}
+.answer .label{font-family:var(--f-marker);font-size:19px;color:var(--ink);margin:0 0 4px}
+.answer p:last-child{margin:0}
+.answer h3{font-size:23px}
+/* Key facts */
+.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin:26px 0 0;padding:0;list-style:none}
+.facts li{margin:0;background:var(--white);border:2px solid var(--ink);border-radius:14px;padding:14px 16px}
+.facts b{display:block;font-family:var(--f-poster);font-weight:400;font-size:26px;line-height:1.05;text-transform:uppercase}
+.facts span{color:var(--muted);font-size:15.5px}
+/* Comparison table: always inside .scroll */
+.scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;border:2px solid var(--ink);border-radius:14px;background:var(--white);margin:0 0 10px}
+table{border-collapse:collapse;width:100%;min-width:640px;font-size:16px}
+caption{text-align:left;padding:12px 14px 4px;font-weight:800}
+th,td{text-align:left;vertical-align:top;padding:10px 14px;border-bottom:1px solid var(--line)}
+thead th{font-size:13.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);border-bottom:2px solid var(--ink)}
+tbody th{font-weight:800}
+tbody tr:last-child>*{border-bottom:0}
+tr.pick{background:#FFF3BF}
+.scroll-hint{font-size:14px;color:var(--muted);margin:0 0 6px}
+@media (min-width:760px){.scroll-hint{display:none}}
+/* Options */
+.options{display:grid;gap:16px}
+.option{background:var(--white);border:2px solid var(--ink);border-radius:16px;padding:18px 20px}
+.option .tags{margin:2px 0 10px;display:flex;flex-wrap:wrap;gap:6px}
+.option dl{display:grid;grid-template-columns:minmax(110px,max-content) 1fr;gap:4px 14px;margin:8px 0 0;font-size:16px}
+.option dt{color:var(--muted);font-weight:700}.option dd{margin:0}
+@media (max-width:480px){.option dl{grid-template-columns:1fr}.option dd{margin-bottom:6px}}
+/* Evidence labels: words first, color second */
+.tag{display:inline-block;font-size:12.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;border-radius:6px;padding:2px 7px;border:1.5px solid var(--ink)}
+.tag.verified{background:#DDF5E3}.tag.estimate{background:var(--blush)}.tag.unknown{background:var(--white);border-style:dashed}.tag.deadline{background:var(--sun)}
+/* Callouts */
+.callout{border:2px solid var(--ink);border-left:10px solid var(--tomato);border-radius:12px;background:var(--white);padding:14px 18px;margin:16px 0}
+.callout .label{font-weight:800;text-transform:uppercase;letter-spacing:.05em;font-size:14px;margin:0 0 4px}
+.callout.info{border-left-color:var(--cobalt)}
+.callout p:last-child,.callout ul:last-child{margin-bottom:0}
+/* Next steps: the brand's numbered circles */
+.steps{list-style:none;counter-reset:n;padding:0;margin:22px 0 0;display:grid;gap:22px}
+.steps li{counter-increment:n;position:relative;margin:0;padding:16px 18px 16px 74px;background:var(--white);border:2px solid var(--ink);border-radius:16px;min-height:64px}
+.steps li::before{content:counter(n);position:absolute;left:14px;top:12px;width:44px;height:44px;border-radius:50%;display:grid;place-items:center;background:var(--tomato);color:var(--ink);font:400 24px/1 var(--f-poster);border:2px solid var(--ink)}
+.steps .when{display:block;color:var(--muted);font-size:15px;font-weight:700}
+/* Timeline for plans */
+.timeline{list-style:none;padding:0;margin:18px 0 0;border-left:3px solid var(--ink);margin-left:8px}
+.timeline li{position:relative;margin:0;padding:0 0 18px 24px}
+.timeline li::before{content:"";position:absolute;left:-10px;top:6px;width:17px;height:17px;border-radius:50%;background:var(--paper);border:3px solid var(--ink)}
+.timeline li.done::before{background:var(--cobalt)}
+.timeline li.due::before{background:var(--tomato)}
+.timeline .date{font-weight:800}
+.timeline .owner{color:var(--muted);font-size:15px}
+/* A short handwritten aside, at most twice per document */
+.note{font-family:var(--f-marker);color:var(--cobalt);font-size:19px;line-height:1.3;display:inline-block;transform:rotate(-2deg);margin:4px 0 12px}
+/* Sources */
+.sources{font-size:15.5px;color:var(--muted);padding-left:1.6em}
+.sources li{margin:6px 0}
+sup.ref{font-size:.7em;font-weight:800;margin-left:1px}
+sup.ref a{text-decoration:none}
+footer{margin-top:56px;padding-top:16px;border-top:2px dashed var(--ink);color:var(--muted);font-size:14.5px}
+@media (prefers-reduced-motion:reduce){*{transform:none!important}}
+@media print{
+  @page{margin:16mm 14mm}
+  body{background:#fff;font-size:11.5pt}
+  .page{max-width:none;padding:0}
+  .answer,.steps li,.option,.facts li,.callout,.scroll{box-shadow:none;transform:none;break-inside:avoid}
+  .scroll{overflow:visible;border-width:1px}table{min-width:0}
+  thead{display:table-header-group}tr{break-inside:avoid}
+  h2{break-after:avoid}.scroll-hint{display:none}
+  a{color:var(--ink)}a[href^="http"]::after{content:" (" attr(href) ")";font-size:9pt;color:var(--muted);overflow-wrap:anywhere}
+  sup.ref a::after{content:none}
+}
+</style>
+</head>
+<body>
+<main class="page">
+<header>
+  <div class="brand"><svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="#2B3FF6"/><path d="M8 9.5h16v11H15l-5 4v-4H8z" fill="#FFD43B"/></svg>Protagonist</div>
+  <div><span class="kicker">Tu plan</span></div>
+  <h1>Solicitud de enfermería para el otoño de 2027</h1>
+  <p class="meta"><span>Actualizado el 20 de octubre de 2026</span><span>Fecha límite: 15 de marzo de 2027</span><span class="status">Final</span></p>
+</header>
+<section class="answer" aria-labelledby="answer-title">
+  <p class="label">Lo más importante</p>
+  <h3 id="answer-title">Tienes tiempo suficiente si pides tu certificado de estudios antes del 15 de noviembre.</h3>
+  <p>El certificado tarda hasta tres semanas en llegar, y la universidad no revisa solicitudes incompletas.<sup class="ref"><a href="#s1">1</a></sup></p>
+</section>
+<ul class="facts">
+  <li><b>146 días</b><span>hasta la fecha límite oficial</span></li>
+  <li><b>7 pasos</b><span>3 dependen de otras personas</span></li>
+  <li><b>$35</b><span>cuota de solicitud; puedes pedir exención</span></li>
+</ul>
+<h2>Calendario</h2>
+<ol class="timeline">
+  <li class="done"><span class="date">20 oct</span> · Confirmar programa, plazo y requisitos <span class="tag verified">Verificado</span><br><span class="owner">Tú y Protagonist · Hecho: confirmaste el programa en el chat</span></li>
+  <li class="due"><span class="date">15 nov</span> · Pedir el certificado de estudios a tu escuela secundaria<br><span class="owner">Tú · Prueba: el correo de confirmación de la escuela</span></li>
+  <li><span class="date">1 dic</span> · Primer borrador del ensayo personal<br><span class="owner">Tú; Protagonist te ayuda a revisarlo</span></li>
+  <li><span class="date">15 ene</span> · Solicitar la exención de la cuota <span class="tag estimate">Estimado</span><br><span class="owner">Tú · Protagonist prepara el formulario</span></li>
+  <li><span class="date">1 mar</span> · Revisar y enviar la solicitud<br><span class="owner">Tú · Prueba: número de confirmación</span></li>
+</ol>
+<div class="callout info"><p class="label">Qué necesito de ti</p><p>Tu fecha de graduación y el nombre exacto de tu escuela secundaria, para preparar la carta de solicitud del certificado.</p></div>
+<h2>Esta semana</h2>
+<ol class="steps">
+  <li><span class="when">Hoy</span>Responde con tu fecha de graduación y el nombre de tu escuela.</li>
+  <li><span class="when">Antes del viernes</span>Envía la carta que te prepararé a la oficina de registros.</li>
+  <li><span class="when">Cuando llegue la respuesta</span>Reenvíame la confirmación para marcar el paso como hecho.</li>
+</ol>
+<h2>Fuentes</h2>
+<ol class="sources"><li id="s1">Example County College, <a href="https://www.example.edu/nursing">“Admisión a enfermería”</a>, consultado el 20 oct 2026.</li></ol>
+<footer>Protagonist · Versión 2 · Este plan es una copia con fecha; tu plan actual vive en el chat.</footer>
+</main>
+</body>
+</html>

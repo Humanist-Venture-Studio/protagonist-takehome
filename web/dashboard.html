@@ -1,0 +1,537 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#F4F4F6" media="(prefers-color-scheme: light)"><meta name="theme-color" content="#0D0D10" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3CradialGradient id='g' cx='.32' cy='.3'%3E%3Cstop offset='0' stop-color='%232FC4B4'/%3E%3Cstop offset='.72' stop-color='%236D62FF'/%3E%3C/radialGradient%3E%3C/defs%3E%3Ccircle cx='16' cy='16' r='15' fill='url(%23g)'/%3E%3C/svg%3E">
+<title>Protagonist</title>
+<style>/*{{STUDENT_CSS}}*/</style>
+<style>
+/* /me: Today, Goals, Files and Assistant views. Shared shell and components: web/student.css. Design: docs/student-dashboard-design.md. */
+.next{padding:var(--s5);display:grid;gap:var(--s3);background:color-mix(in srgb,var(--accent) 6%,var(--surface));border-color:color-mix(in srgb,var(--accent) 22%,var(--line))}
+.next .eyebrow{color:var(--accent)}
+.next .acts .btn.primary{flex:1 1 auto}
+@container main (min-width:36rem){.next .acts .btn.primary{flex:none}}
+/* Very narrow (a small phone with larger text): less padding and no button icons, so the longest word still fits. */
+@container main (max-width:16rem){.next{padding:var(--s3)}.next .btn{padding-inline:var(--s3)}.next .btn .i{display:none}.list>li{padding-left:var(--s3)}}
+.step{font-size:var(--t-title);font-weight:650;line-height:1.25;overflow-wrap:anywhere}
+.meta{display:flex;flex-wrap:wrap;align-items:center;gap:var(--s1) var(--s3);font-size:var(--t-foot);color:var(--text-2)}
+.due{display:inline-flex;align-items:center;gap:.25rem;font-weight:600;color:var(--text)}.due .i{width:1rem;height:1rem}
+.due.soon{color:var(--warn)}
+.date{flex:none;width:2.75rem;padding:.25rem 0;border-radius:var(--r2);background:var(--surface-2);text-align:center;line-height:1.15}
+.date small{display:block;font-size:.625rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+.date b{display:block;font-size:var(--t-head);font-weight:600}
+.form{flex-basis:100%;display:grid;gap:var(--s3);grid-template-columns:repeat(auto-fit,minmax(min(100%,13rem),1fr));padding:var(--s2) var(--s2) var(--s2) 0}
+.field{display:grid;gap:.25rem;min-width:0;font-size:var(--t-foot);font-weight:500;color:var(--text-2)}
+.frow{grid-column:1/-1;display:flex;flex-wrap:wrap;align-items:center;gap:var(--s2)}
+.confirm{grid-column:1/-1;display:flex;flex-wrap:wrap;align-items:center;gap:var(--s2);padding:var(--s2) var(--s2) var(--s2) var(--s4);border-radius:var(--r2);background:color-mix(in srgb,var(--err) var(--tint),var(--surface));font-weight:600}
+.confirm>span:first-child{margin-right:auto}
+.ft{flex:none;width:2.5rem;height:2.5rem;display:grid;place-items:center;border-radius:var(--r1);background:var(--surface-2);color:var(--text-2);font-size:.625rem;font-weight:700;letter-spacing:.06em}
+.ft.html{background:color-mix(in srgb,var(--accent) var(--tint),var(--surface));color:var(--accent)}
+.ft.pdf{background:color-mix(in srgb,var(--err) var(--tint),var(--surface));color:var(--err)}
+.gm{display:grid;gap:.375rem;flex:1;min-width:0}
+.goals{display:grid;gap:var(--s3);grid-template-columns:repeat(auto-fill,minmax(min(100%,22rem),1fr))}
+.goal{padding:var(--s4);display:grid;gap:var(--s3);align-content:start;scroll-margin-top:var(--s4)}
+.goal.hl{outline:2px solid var(--accent);outline-offset:2px}.goal:focus{outline:none}.goal.hl:focus{outline:2px solid var(--accent)}
+.gt{display:flex;align-items:flex-start;justify-content:space-between;gap:var(--s2)}
+.gt h3{font-size:var(--t-head);font-weight:600;line-height:1.3;overflow-wrap:anywhere}
+.nx{display:grid;gap:.125rem;padding:var(--s3);border-radius:var(--r2);background:var(--bg)}
+.facts{display:grid;grid-template-columns:max-content minmax(0,1fr);gap:.25rem var(--s4);font-size:var(--t-foot)}
+.facts dt{color:var(--text-2)}.facts dd{overflow-wrap:anywhere}.facts .dl{color:var(--warn);font-weight:600}
+details.more{margin-top:var(--s4)}
+details.more .goal{background:none;border-style:dashed}
+.split{display:grid;gap:var(--s5);grid-template-columns:minmax(0,1fr)}
+.menu .i{color:var(--accent)}.menu .m{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.menu .body{display:grid}
+.detail>section>.sh{margin-bottom:var(--s3)}
+.back{margin-left:calc(-1 * var(--s3))}
+@container page (max-width:63.99rem){.split[data-sub] .menu,#v-assistant:has(>.split[data-sub])>.vh,.split:not([data-sub]) .detail{display:none}.log{margin-top:var(--s4)}}
+/* Wide: the assistant list becomes a row of tabs over one pane, on the reading width. The pane's own heading stays for
+   screen readers and focus, but the tab already shows it. */
+@container page (min-width:64rem){
+  .split{display:block}
+  .menu{position:sticky;top:0;z-index:2;margin-bottom:var(--s5);background:var(--bg);border:0;border-bottom:1px solid var(--line);border-radius:0}
+  .menu .list{display:flex;flex-wrap:wrap;column-gap:var(--s6)}
+  .menu .list>li{min-height:0;padding:0;border:0}
+  .menu.card>.list>li>a.row{border-radius:0}
+  .menu a.row{padding:0;color:var(--text-2);font-size:var(--t-nav);box-shadow:inset 0 -2px 0 transparent}
+  .menu a.row:hover{background:none;color:var(--text)}
+  .menu a.row>.i,.menu .m,.detail>section>.sh:first-child{display:none}
+  .menu a[aria-current=page]{color:var(--text);box-shadow:inset 0 -2px 0 var(--accent)}
+  .menu a[aria-current=page] .t{font-weight:600}
+  .detail>section>.h1{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+  .menu,.detail>section,#file-list{max-width:var(--measure)}
+}
+/* Activity: newest first, grouped by day; what the assistant did sits under the reply it led to. */
+.log{display:grid;gap:var(--s1)}
+.day{display:flex;align-items:center;gap:var(--s3);margin:var(--s4) 0 var(--s1)}
+.day:first-child{margin-top:0}
+.day::after{content:"";flex:1;height:1px;background:var(--line)}
+.msg{display:grid;grid-template-columns:1.75rem minmax(0,1fr);column-gap:var(--s3);padding:var(--s2) 0}
+.msg>div{grid-column:2;min-width:0}
+.av{grid-row:span 2;width:1.75rem;height:1.75rem;border-radius:50%;display:grid;place-items:center;background:var(--surface-2);font-size:var(--t-cap);font-weight:700;color:var(--text-2)}
+.av .i{width:1rem;height:1rem}
+.av.assistant{background:radial-gradient(circle at 32% 30%,var(--orb-b),var(--orb-a) 72%)}
+.av.reminder{background:color-mix(in srgb,var(--warn) var(--tint),var(--surface));color:var(--warn)}
+.who{display:flex;flex-wrap:wrap;align-items:baseline;column-gap:var(--s2);font-size:var(--t-foot);line-height:1.75rem}
+.who b{font-weight:600}.who time{color:var(--text-2);font-variant-numeric:tabular-nums}
+.txt{display:grid;grid-template-columns:minmax(0,1fr);gap:var(--s2);line-height:1.55;overflow-wrap:anywhere}
+.txt p{white-space:pre-line}
+.msg.student .txt{justify-self:start;max-width:100%;padding:var(--s2) var(--s3);border-radius:var(--r2);background:var(--surface);border:1px solid var(--line)}
+.did{display:grid;gap:.125rem;margin-top:var(--s2)}
+.msg>div>.did:first-child{margin-top:0}
+.did li{display:flex;align-items:baseline;gap:.375rem;font-size:var(--t-foot);color:var(--text-2);overflow-wrap:anywhere}
+.did .i{width:.875rem;height:.875rem;flex:none;align-self:center}
+/* Inline links: 44 px tall hit areas that don't change the line height, and long hosts shortened instead of overflowing. */
+.lnk{position:relative;display:inline-block;max-width:100%;min-width:var(--tap);border-radius:var(--r1);padding-block:calc((var(--tap) - 1lh)/2);margin-block:calc((1lh - var(--tap))/2);vertical-align:bottom;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--accent);font-weight:500;text-decoration:underline;text-decoration-color:color-mix(in srgb,var(--accent) 35%,transparent);text-underline-offset:.2em}
+.lnk:hover{text-decoration-color:currentColor}
+.lnk .i{width:.875rem;height:.875rem;margin-left:.125rem;vertical-align:-.125rem}
+/* Today's Activity card: the same entries, two lines each, without links. */
+.mini>li{display:grid;grid-template-columns:1.25rem minmax(0,1fr);column-gap:var(--s3);row-gap:.125rem;align-items:start;min-height:0;padding:var(--s3) var(--s4)}
+.mini .av{width:1.25rem;height:1.25rem;margin-top:.125rem;font-size:.625rem}.mini .av .i{width:.75rem;height:.75rem}
+.mini .who{line-height:1.4}
+.mini .txt{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;font-size:var(--t-foot);line-height:1.45;color:var(--text-2)}
+.ef{display:flex;flex-wrap:wrap;align-items:center;gap:var(--s2) var(--s3);margin-top:var(--s3)}
+.ef .st{flex:1 1 10rem}.cnt{font-size:var(--t-foot);color:var(--text-2);font-variant-numeric:tabular-nums}
+.kv>li{min-height:3.5rem}.kv .k{flex:0 0 6.5rem;color:var(--text-2)}.kv .v{flex:1 1 5rem;min-width:0;overflow-wrap:anywhere}
+.kv code{font:600 var(--t-body) ui-monospace,SFMono-Regular,Menlo,monospace;padding:.0625rem .375rem;border-radius:.375rem;background:var(--surface-2)}
+.usage{display:grid;gap:var(--s4) var(--s6);padding:var(--s4);grid-template-columns:repeat(auto-fill,minmax(min(100%,14rem),1fr))}
+.usage .lbl{display:flex;justify-content:space-between;gap:var(--s2);margin-bottom:.375rem;font-size:var(--t-foot)}
+.usage .lbl span:last-child{color:var(--text-2);font-variant-numeric:tabular-nums}
+.link-code{flex-basis:100%;display:grid;gap:var(--s2);justify-items:start;padding:var(--s3);margin:0 var(--s2) var(--s2) 0;border-radius:var(--r2);background:var(--bg)}
+.link-code b{font:700 var(--t-title) ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.06em;overflow-wrap:anywhere}
+.signout{margin-top:var(--s4)}
+.sk{display:grid;gap:var(--s3);padding:var(--s4)}.sk .skel.w{width:60%}.sk .skel.h{height:1.75rem;width:80%}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+<!--{{STUDENT_HEADER}}-->
+<main id="main" tabindex="-1" data-scroll><div id="banner" aria-live="polite"></div>
+
+<div class="view" id="v-today" data-view="today">
+  <div class="vh"><div><p class="eyebrow" id="today-date"></p><h1 class="h1" id="hello" tabindex="-1">Today</h1></div></div>
+  <div class="cols" id="content">
+    <div class="stack">
+      <section id="next" aria-label="Next up"><div class="card next"><div class="skel w"></div><div class="skel h"></div><div class="skel w"></div></div></section>
+      <section aria-labelledby="rem-h" id="upcoming"><div class="sh"><h2 id="rem-h" tabindex="-1">Upcoming<span class="n" id="n-reminders"></span></h2></div><div class="card" id="reminder-list"><div class="sk"><div class="skel"></div><div class="skel w"></div></div></div></section>
+      <section aria-labelledby="tg-h"><div class="sh"><h2 id="tg-h">Goals<span class="n" id="n-goals"></span></h2><a class="btn ghost" href="#goals">See all</a></div><div id="today-goals"><div class="card sk"><div class="skel"></div><div class="skel w"></div></div></div></section>
+    </div>
+    <div class="stack">
+      <section aria-labelledby="tf-h"><div class="sh"><h2 id="tf-h">Latest files</h2><a class="btn ghost" href="#files" id="all-files">All files</a></div><div class="card" id="today-files"><div class="sk"><div class="skel"></div><div class="skel w"></div></div></div></section>
+      <section aria-labelledby="ta-h"><div class="sh"><h2 id="ta-h">Activity</h2><a class="btn ghost" href="#activity">See all</a></div><div class="card" id="today-activity"><div class="sk"><div class="skel"></div><div class="skel w"></div></div></div></section>
+    </div>
+  </div>
+</div>
+
+<div class="view" id="v-goals" data-view="goals" hidden>
+  <div class="vh"><h1 class="h1" tabindex="-1">Goals</h1></div>
+  <div id="goal-list"><div class="card sk"><div class="skel"></div><div class="skel w"></div></div></div>
+</div>
+
+<div class="view" id="v-files" data-view="files" hidden>
+  <div class="vh"><h1 class="h1" tabindex="-1">Files</h1></div>
+  <div class="card" id="file-list"><div class="sk"><div class="skel"></div><div class="skel w"></div></div></div>
+</div>
+
+<div class="view" id="v-assistant" data-view="assistant" hidden>
+  <div class="vh"><h1 class="h1" tabindex="-1">Assistant</h1></div>
+  <div class="split" id="split">
+    <nav class="menu card" aria-label="Assistant"><ul class="list">
+      <li class="link"><a class="row" href="#activity" data-pane="activity"><svg class="i" aria-hidden="true"><use href="#i-activity"/></svg><span class="body"><span class="t">Activity</span><span class="m" id="act-sum">Loading…</span></span><svg class="i chev" aria-hidden="true"><use href="#i-chev"/></svg></a></li>
+      <li class="link"><a class="row" href="#soul" data-pane="soul"><svg class="i" aria-hidden="true"><use href="#i-soul"/></svg><span class="body"><span class="t">Personality</span><span class="m" id="soul-sum">Loading…</span></span><svg class="i chev" aria-hidden="true"><use href="#i-chev"/></svg></a></li>
+      <li class="link"><a class="row" href="#memory" data-pane="memory"><svg class="i" aria-hidden="true"><use href="#i-memory"/></svg><span class="body"><span class="t">Memory</span><span class="m" id="mem-sum">Loading…</span></span><svg class="i chev" aria-hidden="true"><use href="#i-chev"/></svg></a></li>
+      <li class="link"><a class="row" href="#account" data-pane="account"><svg class="i" aria-hidden="true"><use href="#i-account"/></svg><span class="body"><span class="t">Account &amp; usage</span><span class="m" id="acct-sum">—</span></span><svg class="i chev" aria-hidden="true"><use href="#i-chev"/></svg></a></li>
+    </ul></nav>
+    <div class="detail">
+      <section data-pane="activity" aria-labelledby="p-activity-h" hidden><div class="sh"><a class="btn ghost back" href="#assistant"><svg class="i" aria-hidden="true"><use href="#i-back"/></svg>Assistant</a></div>
+        <h2 class="h1" id="p-activity-h" tabindex="-1">Activity</h2><div class="log" id="feed"></div></section>
+      <section data-pane="soul" aria-labelledby="p-soul-h" hidden><div class="sh"><a class="btn ghost back" href="#assistant"><svg class="i" aria-hidden="true"><use href="#i-back"/></svg>Assistant</a></div>
+        <h2 class="h1" id="p-soul-h" tabindex="-1">Personality</h2>
+        <label class="sr" for="soul-text">Personality (SOUL.md)</label><textarea id="soul-text" maxlength="8000" disabled></textarea>
+        <div class="ef"><span class="st" id="soul-status" role="status"></span><span class="cnt" id="soul-count"></span><button class="btn primary" type="button" id="soul-save" aria-label="Save personality" disabled>Save</button></div></section>
+      <section data-pane="memory" aria-labelledby="p-memory-h" hidden><div class="sh"><a class="btn ghost back" href="#assistant"><svg class="i" aria-hidden="true"><use href="#i-back"/></svg>Assistant</a></div>
+        <h2 class="h1" id="p-memory-h" tabindex="-1">Memory</h2>
+        <label class="sr" for="memory-text">Memory (MEMORY.md)</label><textarea id="memory-text" maxlength="8000" disabled></textarea>
+        <div class="ef"><span class="st" id="memory-status" role="status"></span><span class="cnt" id="memory-count"></span><button class="btn primary" type="button" id="memory-save" aria-label="Save memory" disabled>Save</button></div></section>
+      <section data-pane="account" aria-labelledby="p-account-h" hidden><div class="sh"><a class="btn ghost back" href="#assistant"><svg class="i" aria-hidden="true"><use href="#i-back"/></svg>Assistant</a></div>
+        <h2 class="h1" id="p-account-h" tabindex="-1">Account &amp; usage</h2>
+        <div class="card"><ul class="list kv" id="account-info"></ul></div>
+        <div class="sh"><h3 class="eyebrow">Today’s usage</h3></div>
+        <div class="card usage" id="usage" role="group" aria-label="Today’s usage"></div>
+        <form class="signout" method="post" action="/me/logout"><button class="btn danger" type="submit">Sign out</button></form></section>
+    </div>
+  </div>
+</div>
+</main>
+</div>
+<script>/*{{STUDENT_JS}}*/</script>
+<script>
+(()=>{
+  const $=id=>document.getElementById(id);
+  const el=(tag,cls,text)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(text!==undefined)e.textContent=text;return e;};
+  const svg=(id,cls='i')=>{const s=document.createElementNS('http://www.w3.org/2000/svg','svg');s.setAttribute('aria-hidden','true');s.setAttribute('class',cls);const u=document.createElementNS('http://www.w3.org/2000/svg','use');u.setAttribute('href','#i-'+id);s.append(u);return s;};
+  const btn=(label,cls='btn',href)=>{const b=el(href?'a':'button',cls,label);if(href)b.href=href;else b.type='button';return b;};
+  // The header's chat link already points at the student's own chat (the simulator).
+  const chatLink=document.querySelector('[data-chat]')||document.querySelector('.head .chat'),CHAT=chatLink.dataset.chat||'Simulator',ICON='chat';
+  const chatBtn=(label,cls='btn primary')=>{const a=btn('',cls,chatLink.getAttribute('href'));a.append(svg(ICON),document.createTextNode(label));return a;};
+  const key=(e,k)=>{e.dataset.k=k;return e;};
+  const api=async(path,method='GET',body)=>{
+    const r=await fetch('/me/api'+path,{method,headers:{'X-Protagonist':'1',...(body?{'Content-Type':'application/json'}:{})},body:body?JSON.stringify(body):undefined,credentials:'same-origin'});
+    if(r.status===401){location.href='/me';throw new Error('signed out');}
+    const data=await r.json().catch(()=>({}));if(!r.ok)throw new Error(data.error||'Something went wrong');return data;
+  };
+  const clock=iso=>new Date(iso).toLocaleTimeString(undefined,{timeStyle:'short'});
+  const when=iso=>{try{const d=new Date(iso);return d.toDateString()===new Date().toDateString()?clock(iso):d.toLocaleString(undefined,{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'});}catch{return iso;}};
+  const short=iso=>{const d=new Date(iso);return d.toLocaleDateString(undefined,{month:'short',day:'numeric',...(d.getFullYear()!==new Date().getFullYear()?{year:'numeric'}:{})});};
+  const size=n=>n<1024?n+' B':n<1048576?Math.round(n/1024)+' KB':(n/1048576).toFixed(1)+' MB';
+  // Goal targets are free text from goal files: ISO dates are pretty-printed (with the year unless it is this year), anything else is shown verbatim.
+  const ISO=/^(\d{4})-(\d{2})-(\d{2})/;
+  const day=t=>{const m=ISO.exec(t||'');if(!m)return t||'';const y=+m[1];return new Date(Date.UTC(y,m[2]-1,+m[3],12)).toLocaleDateString(undefined,{month:'short',day:'numeric',...(y!==new Date().getFullYear()?{year:'numeric'}:{}),timeZone:'UTC'});};
+  const daysTo=t=>{const m=ISO.exec(t||'');if(!m)return Infinity;const now=new Date();return (Date.UTC(+m[1],m[2]-1,+m[3])-Date.UTC(now.getFullYear(),now.getMonth(),now.getDate()))/864e5;};
+  const zones=['America/New_York','America/Chicago','America/Denver','America/Phoenix','America/Los_Angeles','America/Anchorage','Pacific/Honolulu','America/Puerto_Rico','America/Mexico_City','Europe/Madrid','UTC'];
+  const LABELS={messages:'Messages',model:'Assistant steps',documents:'Files sent',notify:'Progress updates',reminders:'New reminders'};
+  const LIVE=g=>!/paused|completed|cancell?ed/i.test(g.status);
+  const reduced=()=>matchMedia('(prefers-reduced-motion: reduce)').matches,wide=()=>getComputedStyle(document.querySelector('.foot')).display!=='none';
+  const empty=(text,action)=>{const e=el('div','empty');e.append(el('p','t',text));if(action)e.append(action);return e;};
+  const meter=(done,total,label,hi)=>{const t=el('span','track'+(hi?' hi':'')),f=el('i');f.style.width=Math.min(100,Math.round(100*done/(total||1)))+'%';t.append(f);
+    t.setAttribute('role','progressbar');t.setAttribute('aria-label',label);t.setAttribute('aria-valuemin','0');t.setAttribute('aria-valuemax',total);t.setAttribute('aria-valuenow',Math.min(done,total));return t;};
+  $('today-date').textContent=new Date().toLocaleDateString(undefined,{weekday:'long',month:'short',day:'numeric'});
+
+  // Each section re-renders only when its data changed, so polling never moves focus or closes what the student opened.
+  const sig={};
+  const same=(k,v)=>{const s=JSON.stringify(v);if(sig[k]===s)return true;sig[k]=s;return false;};
+  const keep=(box,build)=>{const a=document.activeElement,k=box.contains(a)&&a.dataset?.k;build();if(k)box.querySelector(`[data-k="${CSS.escape(k)}"]`)?.focus({preventScroll:true});};
+
+  function banner(kind,text,retry){
+    if(same('banner',[kind,text]))return;const b=$('banner');b.replaceChildren();b.setAttribute('role',kind==='err'?'alert':'status');if(!kind)return;
+    const box=el('div','banner'+(kind==='wait'?' wait':''));box.append(svg(kind==='wait'?'clock':'alert'),el('p','',text));
+    if(retry){const r=btn('Try again');r.onclick=()=>{r.disabled=true;r.textContent='Trying…';sig.banner=null;retry();};box.append(r);}b.append(box);
+  }
+  // The agent's state, always visible in the header.
+  function pill(d){
+    const p=$('pill'),s=d.unavailable?'waking':d.state==='Saving student context'?'saving':d.state&&d.state!=='Idle'?'working':'idle';
+    p.hidden=false;p.dataset.s=s;$('app').dataset.s=s;p.lastElementChild.textContent={waking:'Waking up',saving:'Saving context',working:'Working…',idle:'Idle'}[s];return s;
+  }
+
+  function hero(d,a){
+    const s=d.onboarding?.status;let m;
+    if(s&&s!=='existing')m={plan:s,ready:!!a.files?.some(f=>f.path==='documents/your-plan.html')};
+    else if(!a.goals)m={loading:true};
+    else{
+      // Dated next steps come first (soonest first); undated ones keep the goal order.
+      const live=a.goals.filter(g=>g.next&&LIVE(g)),dated=live.filter(g=>ISO.test(g.next.target||'')).sort((x,y)=>x.next.target.slice(0,10).localeCompare(y.next.target.slice(0,10)));
+      const g=dated[0]||live[0];m=g?{step:g.next.step,target:g.next.target,goal:g.goal,slug:g.slug}:{none:true};
+    }
+    const box=$('next');if(same('hero',m))return;
+    box.hidden=!!m.none;if(m.none)return box.replaceChildren();
+    keep(box,()=>{box.replaceChildren();if(m.loading)return box.append(el('div','card next sk'));const c=el('div','card next');
+      if(m.plan){
+        // Truthful plan states: a plan is only "on its way" while the confirmed setup job is running.
+        const title={new:'Let’s build your first plan',preparing:m.ready?'Your starter plan is ready':'Your plan is on its way',ready:'Your plan is ready'}[m.plan]||'Your assistant couldn’t finish your plan';
+        c.append(el('p','eyebrow','Your first plan'),el('h2','step',title));
+        if(m.plan==='preparing'&&!m.ready){const bar=el('div','indet');bar.append(el('i'));bar.setAttribute('aria-hidden','true');c.append(bar);}
+        // Read your plan appears only once the plan file exists.
+        const acts=el('div','acts');if(m.ready)acts.append(key(btn('Read your plan','btn primary','/me/plan'),'hero-read'));
+        acts.append(key(chatBtn(m.plan==='new'?'Continue setup in '+CHAT:m.plan==='preparing'||m.plan==='ready'?'Open '+CHAT:'Pick it up in '+CHAT,m.ready?'btn':'btn primary'),'hero-tg'));c.append(acts);
+      }else{
+        const meta=el('p','meta');
+        if(m.target){const due=el('span','due'+(daysTo(m.target)<=7?' soon':''));due.append(svg('clock'),document.createTextNode(ISO.test(m.target)?'By '+day(m.target):m.target));meta.append(due);}
+        meta.append(el('span','',m.goal));
+        const acts=el('div','acts');acts.append(key(chatBtn('Work on it in '+CHAT),'hero-tg'),key(btn('See goal','btn ghost','#goal-'+encodeURIComponent(m.slug)),'hero-goal'));
+        c.append(el('p','eyebrow','Next up'),el('h2','step',m.step),meta,acts);
+      }
+      box.append(c);
+    });
+  }
+
+  function goalCard(g){
+    const c=el('article','card goal');c.id='goal-'+g.slug;c.tabIndex=-1;
+    const top=el('div','gt');top.append(el('h3','',g.goal),el('span','chip '+String(g.status).toLowerCase().replace(/[^a-z-]/g,''),g.status));c.append(top);
+    if(g.steps?.total){const m=el('div','meter');m.append(meter(g.steps.done,g.steps.total,'Steps done: '+g.goal),el('span','',`${g.steps.done}/${g.steps.total} steps`));c.append(m);}
+    if(g.next&&LIVE(g)){const p=el('div','nx');p.append(el('span','eyebrow','Next step'),el('span','t',g.next.step));if(g.next.target)p.append(el('span','m','By '+day(g.next.target)));c.append(p);}
+    const dates=el('dl','facts');
+    if(g.target)dates.append(el('dt','','Target'),el('dd','',day(g.target)));
+    for(const x of g.deadlines||[])dates.append(el('dt','','Deadline'),el('dd','dl',`${day(x.date)} · ${x.what}`));
+    if(dates.children.length)c.append(dates);return c;
+  }
+  function goals(list){
+    if(!list||same('goals',list))return;const box=$('goal-list'),tb=$('today-goals'),wasOpen=!!box.querySelector('details.more')?.open;
+    const live=list.filter(LIVE),rest=list.filter(g=>!LIVE(g));
+    $('n-goals').textContent=String(live.length);
+    keep(box,()=>{box.replaceChildren();
+      if(live.length){const grid=el('div','goals');grid.append(...live.map(goalCard));box.append(grid);}
+      else{const c=el('div','card');c.append(empty(list.length?'No active goals':'No goals yet',key(chatBtn('Tell your assistant a goal'),'goal-tg')));box.append(c);}
+      if(rest.length){const d=el('details','more'),s=key(el('summary'),'inactive');s.append(svg('chev'),document.createTextNode(`Paused, completed & cancelled (${rest.length})`));
+        const g2=el('div','goals');g2.append(...rest.map(goalCard));d.append(s,g2);d.open=wasOpen;box.append(d);}
+    });
+    keep(tb,()=>{tb.replaceChildren();const card=el('div','card');
+      if(!live.length){card.append(empty(list.length?'No active goals':'No goals yet',key(chatBtn('Tell your assistant a goal'),'today-goal-tg')));tb.append(card);return;}
+      const ul=el('ul','list');for(const g of live){const li=el('li','link'),a=key(el('a','row'),'tg:'+g.slug);a.href='#goal-'+encodeURIComponent(g.slug);
+        const body=el('span','gm');body.append(el('span','t',g.goal));
+        if(g.steps?.total){const m=el('span','meter');m.append(meter(g.steps.done,g.steps.total,'Steps done: '+g.goal),el('span','',`${g.steps.done}/${g.steps.total} steps`));body.append(m);}
+        else if(g.target)body.append(el('span','m','Target '+day(g.target)));
+        a.append(body,svg('chev','i chev'));li.append(a);ul.append(li);}
+      card.append(ul);tb.append(card);});
+  }
+
+  // Reminders are the controller's own data. An open or saving reminder form is never replaced by a refresh; the newest list waits until it closes.
+  // A list requested before the latest move or cancellation is ignored, and a cancelled reminder never comes back.
+  let remPending=null,remMin=0;const cancelled=new Set();
+  const editing=()=>!!$('reminder-list').querySelector('.form:not([hidden]),[aria-busy="true"]');
+  const flushReminders=()=>{if(remPending&&!editing()){const [l,z,g]=remPending;remPending=null;reminders(l,z,g);}};
+  const changed=()=>{remMin=gen+1;refresh();};
+  const at=(iso,zone)=>{try{return new Date(iso).toLocaleString(undefined,{timeZone:zone,weekday:'short',month:'short',day:'numeric',hour:'numeric',minute:'2-digit',timeZoneName:'short'});}catch{return iso;}};
+  const localParts=(at,zone)=>Object.fromEntries(new Intl.DateTimeFormat('en-CA',{timeZone:zone,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(new Date(at)).map(x=>[x.type,x.value]));
+  function tile(w,y,m,d){const dt=new Date(Date.UTC(+y,m-1,+d,12));w.replaceChildren(el('small','',dt.toLocaleDateString(undefined,{month:'short',timeZone:'UTC'})),el('b','',String(+d)));}
+  const city=z=>z.split('/').pop().replace(/_/g,' ');
+  const HERE=Intl.DateTimeFormat().resolvedOptions().timeZone;
+  function emptyReminders(box){box.replaceChildren(empty('Nothing scheduled'));}
+  function reminders(list,zone,g){
+    if(g<remMin)return;list=list.filter(r=>!cancelled.has(r.id));
+    $('n-reminders').textContent=String(list.length);
+    if(editing()){remPending=[list,zone,g];return;}remPending=null;
+    if(same('rem',[list,zone]))return;const box=$('reminder-list');
+    keep(box,()=>{
+      if(!list.length)return emptyReminders(box);
+      const ul=el('ul','list');
+      for(const r of list){
+        const li=el('li'),p=localParts(r.at,r.zone),w=el('div','date');w.setAttribute('aria-hidden','true');tile(w,p.year,p.month,p.day);
+        const body=el('div','body'),time=el('span','',at(r.at,r.zone)),m=el('p','m');
+        // A reminder set in another zone than this device's says whose clock it follows.
+        const when=(iso,z)=>{time.textContent=at(iso,z);m.replaceChildren(time);if(z!==HERE)m.append(' ',el('span','chip',city(z)+' time'));};when(r.at,r.zone);
+        body.append(el('p','t',r.note),m);
+        const edit=key(btn('Edit','btn ghost'),'rem-edit:'+r.id);edit.setAttribute('aria-expanded','false');edit.setAttribute('aria-label','Edit reminder: '+r.note);
+        const form=el('div','form');form.hidden=true;form.id='rem-form-'+r.id;edit.setAttribute('aria-controls',form.id);
+        const l1=el('label','field','Date & time'),inp=el('input');inp.type='datetime-local';inp.value=`${p.year}-${p.month}-${p.day}T${p.hour}:${p.minute}`;l1.append(inp);
+        const l2=el('label','field','Time zone'),wrap=el('span','sel'),tz=el('select');for(const z of [...new Set([r.zone,zone,...zones].filter(Boolean))]){const o=el('option','',z);o.value=z;tz.append(o);}tz.value=r.zone;wrap.append(tz,svg('down'));l2.append(wrap);
+        const row=el('div','frow'),save=btn('Save','btn primary'),cx=btn('Cancel reminder','btn danger'),st=el('span','st');st.setAttribute('role','status');
+        save.setAttribute('aria-label','Save new time');row.append(save,cx,st);form.append(l1,l2,row);
+        const ra=el('div','ra');ra.append(edit);li.append(w,body,ra,form);
+        const open=v=>{form.hidden=!v;edit.setAttribute('aria-expanded',String(v));edit.textContent=v?'Done':'Edit';edit.setAttribute('aria-label',(v?'Done editing reminder: ':'Edit reminder: ')+r.note);if(v)inp.focus();else{form.querySelector('.confirm')?.remove();st.textContent='';edit.focus();flushReminders();}};
+        edit.onclick=()=>{if(li.getAttribute('aria-busy')!=='true')open(form.hidden);};
+        form.addEventListener('keydown',e=>{if(e.key==='Escape'&&li.getAttribute('aria-busy')!=='true'){e.preventDefault();const c=form.querySelector('.confirm');if(c){c.remove();cx.focus();}else open(false);}});
+        const busy=v=>{if(v)li.setAttribute('aria-busy','true');else li.removeAttribute('aria-busy');for(const b of form.querySelectorAll('button,input,select'))b.disabled=v;edit.disabled=v;};
+        save.onclick=async()=>{if(li.getAttribute('aria-busy')==='true')return;busy(true);st.className='st';st.textContent='Saving…';
+          const local=inp.value,z=tz.value;
+          try{const x=await api(`/reminders/${r.id}/reschedule`,'POST',{local,zone:z});when(x.at,z);const [y,mo,d]=local.slice(0,10).split('-');tile(w,y,mo,d);st.className='st ok';st.textContent='Moved';changed();}
+          catch(e){st.className='st err';st.textContent=e.message;}finally{busy(false);}};
+        cx.onclick=()=>{if(form.querySelector('.confirm'))return form.querySelector('.confirm .keep').focus();
+          const c=el('div','confirm');c.append(el('span','','Cancel this reminder?'));const yes=btn('Yes, cancel','btn danger fill'),no=btn('Keep','btn keep');const cst=el('span','st');cst.setAttribute('role','status');c.append(yes,no,cst);form.append(c);no.focus();
+          no.onclick=()=>{c.remove();cx.focus();};
+          yes.onclick=async()=>{if(li.getAttribute('aria-busy')==='true')return;busy(true);cst.className='st';cst.textContent='Cancelling…';
+            try{await api(`/reminders/${r.id}/cancel`,'POST',{});cancelled.add(r.id);changed();const next=(li.nextElementSibling||li.previousElementSibling)?.querySelector('[data-k^="rem-edit:"]');li.remove();sig.rem=null;
+              $('n-reminders').textContent=String(ul.children.length);
+              if(!ul.children.length){emptyReminders(box);$('rem-h').focus();}else(next||$('rem-h')).focus();flushReminders();}
+            catch(e){busy(false);cst.className='st err';cst.textContent=e.message;}};};
+        ul.append(li);
+      }
+      box.replaceChildren(ul);
+    });
+  }
+
+  function fileRow(f,full){
+    const li=el('li'),m=/\.([a-z0-9]{1,5})$/i.exec(f.name),ext=m?m[1].toLowerCase():'',title=f.caption||f.name;
+    const icon=el('span','ft '+(/^html?$/.test(ext)?'html':ext==='pdf'?'pdf':''),(ext||'file').toUpperCase().slice(0,4));icon.setAttribute('aria-hidden','true');
+    const body=el('div','body');body.append(el('p','t',title),el('p','m',[full&&f.caption&&f.caption!==f.name?f.name:'',short(f.at),size(f.size)].filter(Boolean).join(' · ')));
+    const acts=el('div','ra');
+    if(/\.html?$/i.test(f.name)){const read=key(btn('Read','btn','/me/plan?path='+encodeURIComponent(f.path)),(full?'read:':'tread:')+f.path);read.setAttribute('aria-label','Read '+title);acts.append(read);}
+    const dl=key(btn('','btn icon ghost','/me/api/files?path='+encodeURIComponent(f.path)),(full?'dl:':'tdl:')+f.path);dl.setAttribute('download','');dl.setAttribute('aria-label','Download '+f.name);dl.append(svg('dl'));acts.append(dl);
+    li.append(icon,body,acts);return li;
+  }
+  function files(list){
+    if(!list||same('files',list))return;const box=$('file-list'),tb=$('today-files');
+    $('all-files').textContent=list.length>3?`All ${list.length}`:'All files';
+    keep(box,()=>{if(!list.length)return box.replaceChildren(empty('No files yet'));const ul=el('ul','list');ul.append(...list.map(f=>fileRow(f,true)));box.replaceChildren(ul);});
+    keep(tb,()=>{if(!list.length)return tb.replaceChildren(empty('No files yet'));const ul=el('ul','list');ul.append(...list.slice(0,3).map(f=>fileRow(f,false)));tb.replaceChildren(ul);});
+  }
+
+  // Conversation text stays text: links are built with DOM APIs, never markup. A link to this dashboard (the sign-in link the
+  // assistant sends, or a view) opens the signed-in page it names on this origin, so a sign-in code never reaches the page.
+  // Other links show their host and open in a new tab.
+  const URL_RE=/https?:\/\/[^\s<>"'()]+[^\s<>"'().,;:!?]/g;
+  const PLACES={'':'Your dashboard',today:'Today',reminders:'Your reminders',goals:'Your goals',files:'Your files',assistant:'Your assistant',activity:'Your activity',soul:'Your assistant’s personality',memory:'Your assistant’s memory',account:'Your account'};
+  const place=u=>{
+    if(u.origin!==location.origin)return null;
+    const h=new URLSearchParams(u.hash.slice(1));
+    if(u.pathname==='/me/login'||h.has('t')||u.searchParams.has('t')){
+      const s=h.get('section')||u.searchParams.get('section')||'';
+      return s==='ideas'?['/me/ideas','Your ideas']:['goals','files','account'].includes(s)?['/me#'+s,PLACES[s]]:['/me',PLACES['']];
+    }
+    if(u.pathname==='/me/ideas')return ['/me/ideas','Your ideas'];
+    if(u.pathname!=='/me')return null;
+    let v='';try{v=decodeURIComponent(u.hash.slice(1));}catch{}
+    return Object.hasOwn(PLACES,v)?['/me'+(v?'#'+v:''),PLACES[v]]:/^goal-[\w-]+$/.test(v)?['/me#'+v,'Your goal']:['/me',PLACES['']];
+  };
+  // Returns a link, or for a preview (Today's card) only its label; a malformed address stays as it was written.
+  function link(raw,plain){
+    let u;try{u=new URL(raw);}catch{return document.createTextNode(raw);}
+    const own=place(u);
+    // Credentials in other links are dropped too, including a sign-in link for another copy of this app.
+    if(!own){u.username='';u.password='';if(u.pathname==='/me/login'){u.search='';u.hash='';}}
+    const label=own?own[1]:u.hostname.replace(/^www\./,'');
+    if(plain)return document.createTextNode(label);
+    const a=el('a','lnk',label);
+    if(own){a.href=own[0];a.append(svg('in'));}
+    else{a.href=u.href;a.target='_blank';a.rel='noopener noreferrer';a.title=u.href;a.append(svg('out'),el('span','sr',' (new tab)'));}
+    return a;
+  }
+  const linked=(box,text,plain)=>{let i=0;for(const m of text.matchAll(URL_RE)){box.append(text.slice(i,m.index),link(m[0],plain));i=m.index+m[0].length;}box.append(text.slice(i));return box;};
+  // Blank lines start paragraphs; single line breaks stay.
+  const rich=text=>{const box=el('div','txt');for(const para of text.split(/\n[ \t]*\n/))if(para.trim())box.append(linked(el('p'),para.replace(/^\n+|\n+$/g,'')));return box;};
+  const NAME={assistant:'Assistant',reminder:'Reminder',student:'You'};
+  const avatar=who=>{const a=el('span','av '+who);a.setAttribute('aria-hidden','true');if(who==='student')a.textContent=$('me-initial').textContent;if(who==='reminder')a.append(svg('clock'));return a;};
+  const dayName=iso=>{const d=new Date(iso),t=new Date(),n=Math.round((new Date(t.toDateString())-new Date(d.toDateString()))/864e5);
+    return n===0?'Today':n===1?'Yesterday':d.toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric',...(d.getFullYear()!==t.getFullYear()?{year:'numeric'}:{})});};
+  // Newest first. Actions come just before the reply they led to and are listed under it; actions with no reply after them
+  // (a reply still on its way, or a turn that ended without one) are an assistant entry of their own, so nothing is dropped.
+  function entries(list){
+    const out=[];let steps=[];
+    const flush=()=>{if(steps.length)out.push({who:'assistant',text:'',at:steps.find(s=>s.at)?.at,steps:steps.map(s=>s.text)});steps=[];};
+    for(const i of list){
+      if(i.who==='action'){steps.push(i);continue;}
+      const who=['assistant','reminder'].includes(i.who)?i.who:'student';
+      if(who!=='assistant')flush();
+      out.push({who,text:i.text||'',at:i.at,steps:who==='assistant'?steps.map(s=>s.text):[]});if(who==='assistant')steps=[];
+    }
+    flush();return out.reverse();
+  }
+  const did=steps=>{const ul=el('ul','did');for(const s of steps){const li=el('li');li.append(svg('step'),el('span','',s));ul.append(li);}return ul;};
+  function entry(e){
+    const art=el('article','msg '+e.who),who=el('div','who');who.append(el('b','',NAME[e.who]));
+    if(e.at){const t=el('time','',clock(e.at));t.dateTime=e.at;who.append(t);}
+    const body=el('div');if(e.text.trim())body.append(rich(e.text));if(e.steps.length)body.append(did(e.steps));
+    art.append(avatar(e.who),who,body);return art;
+  }
+  function activity(list,unavailable){
+    if(!list){$('act-sum').textContent=unavailable?'Waking up':'Loading…';return;}
+    const last=[...list].reverse().find(i=>i.at&&i.who!=='action');$('act-sum').textContent=!list.length?'No conversation yet':last?'Last message '+when(last.at):'Recent conversation';
+    // The date is part of the signature so Today and Yesterday move on at midnight.
+    if(same('act',[list,new Date().toDateString()]))return;
+    const all=entries(list.slice(-60)),feed=$('feed'),tb=$('today-activity');
+    if(!all.length){const c=el('div','card');c.append(empty('No conversation yet'));feed.replaceChildren(c);tb.replaceChildren(empty('No conversation yet'));return;}
+    const out=[];let day='';
+    for(const e of all){if(e.at){const d=dayName(e.at);if(d!==day){day=d;out.push(el('h3','day eyebrow',d));}}out.push(entry(e));}
+    feed.replaceChildren(...out);
+    const ul=el('ul','list mini');
+    for(const e of all.slice(0,4)){const li=el('li'),who=el('div','who');who.append(el('b','',NAME[e.who]));if(e.at)who.append(el('time','',when(e.at)));
+      li.append(avatar(e.who),who,linked(el('p','txt'),e.text.trim()?e.text.replace(/\s+/g,' '):'↳ '+e.steps.join(' · '),true));ul.append(li);}
+    tb.replaceChildren(ul);
+  }
+
+  // Editors keep the student's unsaved text through refreshes and saves; Save is enabled only for a real change.
+  // A note read before its latest save is ignored (min), so a slow refresh never brings back the old text.
+  const notes={soul:{orig:'',loaded:false,saving:false,min:0},memory:{orig:'',loaded:false,saving:false,min:0}};let asleep=false;
+  const dirty=name=>notes[name].loaded&&$(name+'-text').value!==notes[name].orig;
+  const AWAKE='Waking up';
+  function noteState(name){
+    const n=notes[name],area=$(name+'-text'),save=$(name+'-save'),st=$(name+'-status');
+    $(name+'-count').textContent=n.loaded?`${area.value.length.toLocaleString()} / 8,000`:'';
+    area.disabled=!n.loaded;save.disabled=!n.loaded||n.saving||asleep||!dirty(name);
+    const k=n.orig.split('\n').filter(l=>/^\s*[-*]\s+\S/.test(l)).length,first=n.orig.split('\n').map(l=>l.replace(/^\s*(#+|[-*])\s*/,'').trim()).find(l=>l&&!/^how to talk/i.test(l));
+    $(name==='memory'?'mem-sum':'soul-sum').textContent=dirty(name)?'Unsaved changes':!n.loaded?(asleep?AWAKE:'Loading…'):name==='memory'?(k?`${k} thing${k===1?'':'s'} remembered`:'Nothing yet'):first||'Not set';
+    if(n.saving)return;
+    const shown=st.textContent,result=st.classList.contains('ok')||st.classList.contains('err');
+    if(dirty(name)){if(!result){st.className='st dirty';st.textContent='Unsaved changes';}}
+    else if(asleep){st.className='st';st.textContent=AWAKE;}
+    else if(shown==='Unsaved changes'||shown===AWAKE)st.textContent='';
+  }
+  function note(name,text,g){
+    const n=notes[name],area=$(name+'-text');
+    if(typeof text==='string'&&g>=n.min&&!n.saving&&!dirty(name)){if(area.value!==text)area.value=text;n.orig=text;n.loaded=true;}
+    noteState(name);
+  }
+  for(const name of ['soul','memory']){
+    const n=notes[name],area=$(name+'-text'),save=$(name+'-save'),st=$(name+'-status');
+    area.addEventListener('input',()=>{st.className='st';st.textContent='';noteState(name);});
+    save.onclick=async()=>{if(n.saving||!dirty(name))return;const text=area.value;n.saving=true;st.className='st';st.textContent='Saving…';noteState(name);
+      try{await api('/notes/'+name,'PUT',{text});n.orig=text;n.min=gen+1;if(area.value===text){st.className='st ok';st.textContent='Saved';}else{st.className='st dirty';st.textContent='Unsaved changes';}}
+      catch(e){st.className='st err';st.textContent=e.message;}
+      finally{n.saving=false;noteState(name);}};
+  }
+  addEventListener('beforeunload',e=>{if(dirty('soul')||dirty('memory')){e.preventDefault();e.returnValue='';}});
+
+  function account(a,usage){
+    const handle=a.username?'@'+a.username:'Local test student';
+    $('acct-sum').textContent=usage.messages?`${usage.messages.used} of ${usage.messages.limit} messages today`:(a.username?handle:handle);
+    $('me-name').textContent=a.name;$('me-handle').textContent=a.username?handle:'';$('me-initial').textContent=([...(a.name||'').trim()][0]||'?').toUpperCase();
+    if(same('acct',[a,usage]))return;
+    const ul=$('account-info'),row=(k,...v)=>{const li=el('li'),dd=el('span','v');dd.append(...v);li.append(el('span','k',k),dd);ul.append(li);return li;};ul.replaceChildren();
+    row('Name',a.name);row('Channel','Student simulator');
+    row('Since',new Date(a.connected).toLocaleDateString(undefined,{dateStyle:'medium'}));row('Time zone',a.zone||'—');
+
+    $('usage').replaceChildren(...Object.entries(usage).map(([k,u])=>{const r=el('div'),lab=el('div','lbl'),name=LABELS[k]||k;lab.append(el('span','',name),el('span','',`${u.used} / ${u.limit}`));
+      r.append(lab,meter(u.used,u.limit,name,u.limit&&u.used/u.limit>=.8));return r;}));
+  }
+
+  // The last answer that came from the assistant's worker: shown again while it is waking up or a refresh fails.
+  let known=null,loadedAt=0,state='idle',gen=0;
+  function render(d,g){
+    if(!d.unavailable)known={goals:d.goals||[],files:d.files||[],activity:d.activity||[],soul:d.soul,memory:d.memory,g};
+    const a=known||{};asleep=!!d.unavailable;loadedAt=Date.now();state=pill(d);
+    $('content').hidden=false;
+    $('hello').textContent=`Hi, ${d.account.name.split(' ')[0]}`;
+    banner(d.unavailable?'wait':null,'Your assistant is waking up');
+    hero(d,a);goals(a.goals);reminders(d.reminders||[],d.account.zone,g);files(a.files);activity(a.activity,d.unavailable);
+    note('soul',a.soul,a.g);note('memory',a.memory,a.g);account(d.account,d.usage||{});
+  }
+  function failed(){
+    if(loadedAt){banner('err',`Couldn’t refresh. Showing what loaded at ${new Date(loadedAt).toLocaleTimeString(undefined,{timeStyle:'short'})}.`,load);return;}
+    $('content').hidden=true;banner('err','Couldn’t load your dashboard.',load);
+  }
+
+  // One request at a time and at most one pending timer; a hidden page stops polling until it is shown again.
+  // After a change, refresh() asks for a newer answer, even while an older request is still out.
+  let timer=0,inflight=null,first=true,again=false;
+  const schedule=ms=>{clearTimeout(timer);if(!document.hidden)timer=setTimeout(load,ms);};
+  const refresh=()=>{if(inflight)again=true;else load();};
+  function load(){
+    if(inflight)return inflight;clearTimeout(timer);const g=++gen;
+    inflight=(async()=>{
+      try{const d=await api('/overview');render(d,g);schedule(d.unavailable||state!=='idle'||['new','preparing'].includes(d.onboarding?.status)?4000:30000);}
+      catch(e){if(e.message==='signed out')return;failed();schedule(15000);}
+      finally{inflight=null;if(first&&loadedAt){first=false;route(false);}if(again){again=false;load();}}
+    })();
+    return inflight;
+  }
+  document.addEventListener('visibilitychange',()=>{if(document.hidden)clearTimeout(timer);else load();});
+
+  // Views. The hash picks one, so the links the bot sends keep working: #goals, #goal-<slug>, #files, #reminders,
+  // #assistant and its panes #activity, #soul, #memory and #account. Scrolling stays inside <main data-scroll>.
+  const PANES=['activity','soul','memory','account'],main=$('main');
+  const parse=()=>{let h='';try{h=decodeURIComponent(location.hash.slice(1));}catch{}
+    if(h==='goals'||h.startsWith('goal-'))return {view:'goals',goal:h.startsWith('goal-')?h:null};
+    if(h==='files')return {view:'files'};
+    if(h==='assistant'||PANES.includes(h))return {view:'assistant',pane:PANES.includes(h)?h:null};
+    return {view:'today',at:h==='reminders'?'upcoming':null};};
+  let shown='';
+  function route(user){
+    const r=parse(),changed=shown!==r.view+(r.pane||'');shown=r.view+(r.pane||'');
+    for(const v of document.querySelectorAll('[data-view]'))v.hidden=v.dataset.view!==r.view;
+    for(const a of document.querySelectorAll('.nav a'))if(a.dataset.nav===r.view)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current');
+    document.title=({today:'Today',goals:'Goals',files:'Files',assistant:'Assistant'})[r.view]+' · Protagonist';
+    // Phones show the assistant's list or one pane; wide screens show the list beside a pane (Activity by default).
+    const pane=r.view==='assistant'?r.pane||(wide()?'activity':null):null,split=$('split');
+    if(pane)split.dataset.sub=pane;else delete split.dataset.sub;
+    for(const s of document.querySelectorAll('.detail>[data-pane]'))s.hidden=s.dataset.pane!==pane;
+    for(const a of document.querySelectorAll('.menu a'))if(a.dataset.pane===pane)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current');
+    let target=null;
+    if(r.goal){const g=$(r.goal);if(g){for(let p=g.closest('details');p;p=p.parentElement?.closest('details'))p.open=true;
+      for(const x of document.querySelectorAll('.goal.hl'))x.classList.remove('hl');g.classList.add('hl');target=g;}}
+    else if(r.at)target=$(r.at);
+    if(target){const top=target.getBoundingClientRect().top-main.getBoundingClientRect().top+main.scrollTop-16;main.scrollTo({top,behavior:user&&!reduced()?'smooth':'auto'});target.focus?.({preventScroll:true});if(r.at)$('rem-h').focus({preventScroll:true});}
+    else if(changed||user){main.scrollTo({top:0});}
+    if(user&&!target){const h=pane&&r.pane?$('p-'+pane+'-h'):document.querySelector(`[data-view="${r.view}"] .h1`);h?.focus({preventScroll:true});}
+  }
+  addEventListener('hashchange',()=>route(true));
+  let wasWide=wide();new ResizeObserver(()=>{if(wide()!==wasWide){wasWide=!wasWide;route(false);}}).observe(document.body);
+  // A link to the current hash (See goal, a nav tab, the account link) follows it again.
+  document.addEventListener('click',e=>{const a=e.target.closest('a[href*="#"]');if(a&&a.hash&&a.pathname===location.pathname&&a.hash===location.hash){e.preventDefault();route(true);}});
+  route(false);load();
+})();
+</script>
+</body>
+</html>

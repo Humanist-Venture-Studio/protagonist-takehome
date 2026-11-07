@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content"><meta name="robots" content="noindex">
+<meta name="theme-color" content="#F4F4F6" media="(prefers-color-scheme: light)"><meta name="theme-color" content="#0D0D10" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3CradialGradient id='g' cx='.32' cy='.3'%3E%3Cstop offset='0' stop-color='%232FC4B4'/%3E%3Cstop offset='.72' stop-color='%236D62FF'/%3E%3C/radialGradient%3E%3C/defs%3E%3Ccircle cx='16' cy='16' r='15' fill='url(%23g)'/%3E%3C/svg%3E">
+<title>Ideas · Protagonist</title>
+<style>/*{{STUDENT_CSS}}*/</style>
+<style>
+/* Ideas (/me/ideas): the same shell and components as /me (web/student.css). */
+.ideas{display:grid;gap:var(--s3);max-width:var(--measure)}
+.idea{display:grid;grid-template-columns:auto minmax(0,1fr);gap:var(--s2) var(--s3);padding:var(--s4)}
+.idea:first-child{background:color-mix(in srgb,var(--accent) 6%,var(--surface));border-color:color-mix(in srgb,var(--accent) 22%,var(--line))}
+.rank{width:1.75rem;height:1.75rem;display:grid;place-items:center;border-radius:50%;background:var(--surface-2);font-size:var(--t-foot);font-weight:600}
+.idea:first-child .rank{background:var(--accent);color:var(--on-accent)}
+.idea h2{font-size:var(--t-head);font-weight:600;line-height:1.3;overflow-wrap:anywhere}
+.idea>*{min-width:0}.idea .tail{grid-column:2;display:grid;grid-template-columns:minmax(0,1fr);gap:var(--s2)}
+.idea .why{color:var(--text-2);overflow-wrap:anywhere}
+.idea details>summary{margin-left:calc(-1 * var(--s2))}
+.prompt{padding:var(--s3);border-radius:var(--r2);background:var(--bg);white-space:pre-wrap;overflow-wrap:anywhere}
+.result:empty{display:none}.result.error{color:var(--err)}
+.started{display:inline-flex;align-items:center;gap:.25rem;min-height:var(--tap);font-weight:600;color:var(--ok)}
+.state{max-width:var(--measure)}
+#empty{max-width:var(--measure)}
+#retry{margin-top:var(--s3)}
+</style></head><body>
+<div class="app" id="app">
+<!--{{STUDENT_HEADER}}-->
+<main id="main" tabindex="-1" data-scroll><div class="view">
+<div class="vh"><div><h1 class="h1">Ideas</h1><p id="status" class="m" role="status">Loading…</p></div></div>
+<div id="empty" class="card" hidden></div><ol id="ideas" class="ideas" aria-label="Ranked ideas"></ol><button id="retry" class="btn" type="button" hidden>Try again</button>
+</div></main>
+</div>
+<script>/*{{STUDENT_JS}}*/</script>
+<script>
+(()=>{
+  const $=id=>document.getElementById(id),el=(tag,text,cls)=>{const n=document.createElement(tag);if(text!==undefined)n.textContent=text;if(cls)n.className=cls;return n;};
+  const chat=document.querySelector('.head .chat'),CHAT=chat.dataset.chat||'Simulator';
+  const svg=id=>{const s=document.createElementNS('http://www.w3.org/2000/svg','svg'),u=document.createElementNS('http://www.w3.org/2000/svg','use');s.setAttribute('class','i');s.setAttribute('aria-hidden','true');u.setAttribute('href','#i-'+id);s.append(u);return s;};
+  const empty=(text,action)=>{const e=el('div',undefined,'empty');e.append(el('p',text,'t'));if(action)e.append(action);$('empty').replaceChildren(e);};
+  const indet=()=>{const b=el('div',undefined,'indet');b.setAttribute('aria-hidden','true');b.append(el('i'));b.style.width='min(16rem,100%)';return b;};
+  // A newer list waits while an idea is starting, and once one has started here the list (with its Open button) stays until the page reloads.
+  let revision='',timer,starting=false,inflight=null,held=false;
+  async function api(path,body){const r=await fetch('/me/api/ideas'+path,{method:body?'POST':'GET',credentials:'same-origin',headers:{'X-Protagonist':'1',...(body?{'Content-Type':'application/json'}:{})},body:body?JSON.stringify(body):undefined});if(r.status===401){$('ideas').replaceChildren();location.href='/me/ideas';throw Error('Signed out.');}const d=await r.json().catch(()=>({}));if(!r.ok)throw Error(d.error||'Something went wrong. Please try again.');return d;}
+  function render(snapshot){
+    if(revision===snapshot.request||starting||held||$('ideas').querySelector('details[open]')||$('ideas').contains(document.activeElement))return;revision=snapshot.request;$('ideas').replaceChildren();
+    snapshot.ideas.forEach((idea,index)=>{
+      const li=el('li',undefined,'card idea'),tail=el('div',undefined,'tail');li.append(el('span',String(index+1),'rank'),el('h2',idea.title));
+      // Reading order matches what is seen: start, its result, then the preview of what will be sent.
+      const row=el('div',undefined,'acts'),start=el('button','Let’s do this','btn primary'),result=el('span','','result');start.type='button';result.setAttribute('role','status');
+      const details=el('details'),summary=el('summary');summary.append(svg('chev'),document.createTextNode('What we’ll work on'));details.append(summary,el('p',idea.prompt,'prompt'));
+      start.onclick=async()=>{if(starting)return;starting=true;start.disabled=true;result.className='result m';result.textContent='Starting…';
+        try{await api('/start',{request:snapshot.request,index});held=true;const done=el('span',undefined,'started');done.append(svg('check'),document.createTextNode('Started'));
+          const link=el('a','Open '+CHAT,'btn primary');link.href=chat.getAttribute('href');start.replaceWith(done);result.className='result';result.replaceChildren(link);link.focus();}
+        catch(e){result.textContent=e.message;result.className='result st err';start.disabled=false;}finally{starting=false;}};
+      row.append(start,result);tail.append(el('p',idea.why,'why'),row,details);li.append(tail);$('ideas').append(li);
+    });
+  }
+  // One request at a time and at most one pending timer; a hidden page stops polling until it is shown again.
+  function load(){
+    if(inflight)return inflight;clearTimeout(timer);$('retry').hidden=true;
+    inflight=(async()=>{try{
+      const d=await api(''),steady=starting||held;if(!steady)$('empty').hidden=!!d.snapshot;
+      if(d.required){revision='';$('ideas').replaceChildren();$('status').textContent='';const a=el('a','Continue setup in '+CHAT,'btn primary');a.href=chat.getAttribute('href');empty('Finish setup first',a);return;}
+      if(!steady&&d.snapshot){render(d.snapshot);
+        $('status').textContent=d.snapshot.kind==='starter'
+          ?'A few ways to get started'+(d.refreshing?' · Refining your ideas…':'')
+          :'Updated '+new Date(d.snapshot.generatedAt).toLocaleString(undefined,{dateStyle:'medium',timeStyle:'short'})+(d.failed?' · Couldn’t refresh':d.refreshing?' · Updating…':'');}
+      else if(!steady){revision='';$('ideas').replaceChildren();$('status').textContent='';
+        if(d.failed){const a=el('a','Open '+CHAT,'btn');a.href=chat.getAttribute('href');empty('Couldn’t make your ideas yet',a);}else{empty(d.contextChanged?'Updating your ideas':'Preparing your ideas',indet());}}
+      if(!document.hidden)timer=setTimeout(load,d.refreshing||d.snapshot?.kind==='starter'||!d.snapshot?2000:60000);
+    }catch(e){$('status').textContent=e.message;$('retry').hidden=false;if(!document.hidden)timer=setTimeout(load,15000);}finally{inflight=null;}})();
+    return inflight;
+  }
+  $('retry').onclick=load;document.addEventListener('visibilitychange',()=>{if(!document.hidden)load();else clearTimeout(timer);});load();
+})();
+</script></body></html>

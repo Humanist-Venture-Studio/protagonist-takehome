@@ -1,0 +1,43 @@
+name: protagonist-takehome
+services:
+  controller:
+    image: protagonist-takehome-controller:local
+    build:
+      context: .
+      target: controller
+    init: true
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3210:3000"
+    environment:
+      CONFIG_FILE: /run/config.json
+      DATA_DIR: /data
+      PORT: 3000
+      BIND_HOST: 0.0.0.0
+      NODE_ENV: production
+    volumes:
+      - controller-data:/data
+      - ./.local/runtime.json:/run/config.json:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks: [default, students]
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    mem_limit: 512m
+    pids_limit: 128
+    logging:
+      driver: json-file
+      options: {max-size: "5m", max-file: "2"}
+    healthcheck:
+      test: [CMD, node, -e, "fetch('http://'+require('node:fs').readFileSync('/tmp/protagonist-public-host','utf8')+':3000/health',{headers:{Host:'localhost'}}).then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+networks:
+  students:
+    name: protagonist-takehome-students
+    internal: true
+volumes:
+  controller-data:

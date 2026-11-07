@@ -1,0 +1,35 @@
+<svg class="sprite" aria-hidden="true" focusable="false">
+<symbol id="i-today" viewBox="0 0 24 24"><path d="M4 10.5 12 4l8 6.5V19a1 1 0 0 1-1 1h-4.5v-5.5h-5V20H5a1 1 0 0 1-1-1z"/></symbol>
+<symbol id="i-goals" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r=".75"/></symbol>
+<symbol id="i-ideas" viewBox="0 0 24 24"><path d="m11 3 1.9 5.1L18 10l-5.1 1.9L11 17l-1.9-5.1L4 10l5.1-1.9zM18.5 15l.8 1.7 1.7.8-1.7.8-.8 1.7-.8-1.7-1.7-.8 1.7-.8z"/></symbol>
+<symbol id="i-files" viewBox="0 0 24 24"><path d="M14 3H7a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V7zM14 3v4h4M9 12.5h6M9 16h6"/></symbol>
+<symbol id="i-assistant" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M8.8 14.2c1.8 1.6 4.6 1.6 6.4 0M9.5 10h.01M14.5 10h.01"/></symbol>
+<symbol id="i-chat" viewBox="0 0 24 24"><path d="M12 4.5c4.7 0 8.5 3.1 8.5 7S16.7 18.5 12 18.5c-1 0-2-.1-2.9-.4L4.5 19.5l1.3-3.4C4.4 14.9 3.5 13.3 3.5 11.5c0-3.9 3.8-7 8.5-7z"/></symbol>
+<symbol id="i-chev" viewBox="0 0 24 24"><path d="m9.5 6 6 6-6 6"/></symbol>
+<symbol id="i-back" viewBox="0 0 24 24"><path d="m14.5 6-6 6 6 6"/></symbol>
+<symbol id="i-down" viewBox="0 0 24 24"><path d="m6.5 9.5 5.5 5.5 5.5-5.5"/></symbol>
+<symbol id="i-dl" viewBox="0 0 24 24"><path d="M12 4.5v10.5m-4.5-4.5 4.5 4.5 4.5-4.5M5.5 19.5h13"/></symbol>
+<symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></symbol>
+<symbol id="i-alert" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5v5.5M12 16.5h.01"/></symbol>
+<symbol id="i-activity" viewBox="0 0 24 24"><path d="M3 12h4l3-7 4 14 3-7h4"/></symbol>
+<symbol id="i-soul" viewBox="0 0 24 24"><path d="M12 19.5s-7-4.3-7-9.6A3.9 3.9 0 0 1 12 7.6a3.9 3.9 0 0 1 7 2.3c0 5.3-7 9.6-7 9.6z"/></symbol>
+<symbol id="i-memory" viewBox="0 0 24 24"><path d="M7 4h10v16l-5-3.6L7 20z"/></symbol>
+<symbol id="i-account" viewBox="0 0 24 24"><circle cx="12" cy="8.5" r="3.5"/><path d="M5 20c1.2-3.4 3.9-5 7-5s5.8 1.6 7 5"/></symbol>
+<symbol id="i-step" viewBox="0 0 24 24"><path d="M7 5v7a2 2 0 0 0 2 2h9m-3-3 3 3-3 3"/></symbol>
+<symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5"/></symbol>
+<symbol id="i-out" viewBox="0 0 24 24"><path d="M14 5h5v5M19 5l-8 8M17 14v4a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1h4"/></symbol>
+<symbol id="i-in" viewBox="0 0 24 24"><path d="M5 12h14m-5-5 5 5-5 5"/></symbol>
+</svg>
+<a class="skip" href="#main">Skip to content</a>
+<header class="head">
+  <a class="agent" href="/me#today" aria-label="Protagonist: Today"><span class="orb" aria-hidden="true"></span><span><b>Protagonist</b><span class="pill" id="pill" role="status" hidden><i aria-hidden="true"></i><span></span></span></span></a>
+  <a class="btn primary chat" href="/chat" aria-label="Open Simulator"><svg class="i" aria-hidden="true"><use href="#i-{{CHAT_ICON}}"/></svg><span>{{CHAT}}</span></a>
+</header>
+<nav class="nav" aria-label="Your space">
+  <a href="/me#today" data-nav="today"><svg class="i" aria-hidden="true"><use href="#i-today"/></svg><span>Today</span></a>
+  <a href="/me#goals" data-nav="goals"><svg class="i" aria-hidden="true"><use href="#i-goals"/></svg><span>Goals</span></a>
+  <a href="/me/ideas" data-nav="ideas"><svg class="i" aria-hidden="true"><use href="#i-ideas"/></svg><span>Ideas</span></a>
+  <a href="/me#files" data-nav="files"><svg class="i" aria-hidden="true"><use href="#i-files"/></svg><span>Files</span></a>
+  <a href="/me#assistant" data-nav="assistant"><svg class="i" aria-hidden="true"><use href="#i-assistant"/></svg><span>Assistant</span></a>
+</nav>
+<a class="foot" href="/me#account" aria-label="Your account"><span class="ava" id="me-initial" aria-hidden="true">{{INITIAL}}</span><span><b id="me-name">{{NAME}}</b><span id="me-handle">{{HANDLE}}</span></span></a>

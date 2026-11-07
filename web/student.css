@@ -1,0 +1,152 @@
+/* Shared by the student pages (Today/Goals/Files/Assistant, Ideas and the reader); the server inlines it so the hash-based CSP
+   covers it. Design: docs/student-dashboard-design.md. Sizes are in rem so larger text settings scale the page. Layout changes
+   are container queries on the page (body) and on <main>, measured in rem, so larger text gets the phone layout and Today's
+   second column appears only when there is room for it. Without container-query support the phone layout is used. */
+:root{color-scheme:light dark;
+  --bg:#F4F4F6;--surface:#FFFFFF;--surface-2:#ECECF0;--line:#E2E2E8;--text:#141418;--text-2:#5A5A66;
+  --accent:#4A43D4;--on-accent:#FFFFFF;--ok:#17774A;--warn:#965800;--err:#C22A2A;--orb-a:#6D62FF;--orb-b:#2FC4B4;--paper:#FFFFFF;
+  --f:-apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,"Segoe UI",Roboto,"Helvetica Neue",sans-serif;
+  --t-cap:.75rem;--t-foot:.8125rem;--t-nav:.875rem;--t-body:.9375rem;--t-head:1.0625rem;--t-title:1.375rem;--t-large:1.75rem;
+  --s1:.25rem;--s2:.5rem;--s3:.75rem;--s4:1rem;--s5:1.25rem;--s6:1.5rem;--s8:2rem;
+  --r1:.5rem;--r2:.75rem;--r3:1rem;--pill:999px;--tap:2.75rem;--tint:8%;--side:14rem;--measure:46rem}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#0D0D10;--surface:#17171C;--surface-2:#24242B;--line:#2B2B33;--text:#F2F2F5;--text-2:#A3A3AE;
+  --accent:#8F8AFF;--on-accent:#0D0D10;--ok:#4FC48C;--warn:#F0B44A;--err:#FF7070;--tint:16%}}
+*,*::before,*::after{box-sizing:border-box}
+[hidden]{display:none!important}
+html{-webkit-text-size-adjust:100%}
+body{container:page/inline-size;margin:0;font:400 var(--t-body)/1.45 var(--f);color:var(--text);background:var(--bg);-webkit-font-smoothing:antialiased}
+h1,h2,h3,p,ol,ul,dl,dd{margin:0}ol,ul{padding:0;list-style:none}
+button,input,select,textarea{font:inherit}
+a{color:inherit}
+.i{width:1.25rem;height:1.25rem;flex:none;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.sprite{position:absolute;width:0;height:0;overflow:hidden}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.skip{position:fixed;left:var(--s2);top:var(--s2);z-index:20;padding:var(--s3) var(--s4);border-radius:var(--r2);background:var(--surface);transform:translateY(-300%)}
+.skip:focus{transform:none}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+
+/* One page scroll area. The document never scrolls: the header and tabs sit around <main data-scroll>, whose
+   overscroll-behavior stops bounce and chaining at its edges, so a Simulator WebView's swipe-to-close never fires from the page.
+   Without support the document scrolls as before. Pinch zoom and touch handling stay native. */
+.app{min-height:100vh;display:grid;grid-template:"head" auto "main" minmax(0,1fr) "nav" auto/minmax(0,1fr)}
+@supports (overscroll-behavior:none){
+  html,body{height:100%;overflow:hidden;overscroll-behavior:none}
+  .app{height:100%;height:100dvh;min-height:0}
+  main[data-scroll]{overflow-y:auto;overflow-x:hidden;overscroll-behavior:none}
+}
+.head{grid-area:head;display:flex;align-items:center;gap:var(--s3);padding:calc(var(--s2) + env(safe-area-inset-top)) calc(var(--s4) + env(safe-area-inset-right)) var(--s2) calc(var(--s4) + env(safe-area-inset-left));border-bottom:1px solid var(--line);background:var(--bg)}
+.agent{display:flex;align-items:center;gap:var(--s3);flex:1;min-width:0;min-height:var(--tap);text-decoration:none}
+.agent>span:last-child{min-width:0}
+.agent b{display:block;font-weight:600;line-height:1.25;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.orb{width:2.25rem;height:2.25rem;border-radius:50%;flex:none;background:radial-gradient(circle at 32% 30%,var(--orb-b),var(--orb-a) 72%)}
+.pill{display:flex;align-items:center;gap:.375rem;font-size:var(--t-foot);color:var(--text-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pill i{width:.5rem;height:.5rem;border-radius:50%;flex:none;background:var(--ok)}
+.pill[data-s=working] i,.pill[data-s=saving] i{background:var(--accent);animation:pulse 1.4s ease-in-out infinite}
+.pill[data-s=waking] i{background:var(--warn);animation:pulse 1.4s ease-in-out infinite}
+.app[data-s=working] .orb,.app[data-s=saving] .orb{animation:breathe 2.4s ease-in-out infinite}
+.app[data-s=waking] .orb{filter:saturate(.3)}
+@keyframes pulse{50%{opacity:.3}}@keyframes breathe{50%{transform:scale(.9)}}
+@keyframes slide{from{transform:translateX(-100%)}to{transform:translateX(250%)}}
+main{grid-area:main;display:block;container:main/inline-size;padding:0 calc(var(--s4) + env(safe-area-inset-right)) var(--s8) calc(var(--s4) + env(safe-area-inset-left))}
+main:focus{outline:none}
+.view{max-width:70rem;margin:0 auto;padding-top:var(--s5);width:100%}
+.nav{grid-area:nav;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));border-top:1px solid var(--line);background:var(--surface);padding:0 env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+.nav a{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.125rem;min-height:3.25rem;min-width:0;color:var(--text-2);text-decoration:none;font-size:.6875rem;font-weight:500}
+.nav a span{max-width:100%;padding:0 .125rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nav a[aria-current=page]{color:var(--accent)}
+.foot{display:none}
+/* Too narrow for the chat app's name (a small phone with larger text): the chat button keeps its icon and its accessible name. */
+@container page (max-width:19.99rem){.head .chat{width:var(--tap);padding:0}.head .chat span{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}}
+/* Wide: a quiet 14 rem sidebar (smaller type, tinted chat button) beside the content. Controls stay at least 44 px. */
+@container page (min-width:64rem){
+  .app{grid-template:"head main" auto "nav main" minmax(0,1fr) "foot main" auto/var(--side) minmax(0,1fr)}
+  .head{flex-wrap:wrap;padding:var(--s4) var(--s3) var(--s3);border:0}
+  .agent{gap:var(--s2);padding:0 var(--s2)}
+  .agent .orb{width:1.75rem;height:1.75rem}
+  .agent b{font-size:var(--t-nav)}.pill{font-size:var(--t-cap)}
+  .head .chat.btn{flex:1 1 100%;border-radius:var(--r1);background:color-mix(in srgb,var(--accent) 11%,var(--surface));color:var(--accent);font-size:var(--t-nav)}
+  .head .chat .i{width:1.125rem;height:1.125rem}
+  .nav{display:flex;flex-direction:column;gap:.125rem;align-self:start;padding:var(--s1) var(--s3) 0;border:0;background:none}
+  .nav a{flex-direction:row;justify-content:flex-start;gap:var(--s3);min-height:var(--tap);padding:0 var(--s2);border-radius:var(--r1);color:var(--text-2);font-size:var(--t-nav)}
+  .nav a .i{width:1.125rem;height:1.125rem}
+  .nav a:hover{background:color-mix(in srgb,var(--text) 5%,transparent);color:var(--text)}
+  .nav a[aria-current=page]{background:var(--surface-2);color:var(--text);font-weight:600}
+  .nav a[aria-current=page] .i{color:var(--accent)}
+  .foot{grid-area:foot;display:flex;align-items:center;gap:var(--s2);margin:var(--s3);padding:var(--s2);min-height:var(--tap);border-radius:var(--r1);text-decoration:none;box-shadow:0 -1px 0 var(--line)}
+  .foot:hover{background:color-mix(in srgb,var(--text) 5%,transparent)}
+  .foot>span:last-child{flex:1;min-width:0}.foot>span:last-child>*{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .foot b{font-size:var(--t-foot);font-weight:600}.foot>span:last-child>span{font-size:var(--t-cap);color:var(--text-2)}
+  .ava{width:1.75rem;height:1.75rem;border-radius:50%;display:grid;place-items:center;background:var(--surface-2);font-size:var(--t-foot);font-weight:600;flex:none}
+  main{border-left:1px solid var(--line);padding:0 var(--s8) var(--s8)}
+  .view{max-width:68rem;padding-top:var(--s6)}
+}
+
+/* Type and layout */
+.eyebrow{font-size:var(--t-cap);font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--text-2)}
+.vh{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:var(--s2) var(--s4);margin-bottom:var(--s5)}
+.h1{font-size:var(--t-large);font-weight:700;line-height:1.15;letter-spacing:-.01em;overflow-wrap:anywhere}
+.h1:focus{outline:none}
+.m{font-size:var(--t-foot);color:var(--text-2);overflow-wrap:break-word}
+.t{font-weight:500;overflow-wrap:break-word}
+.cols{display:grid;gap:var(--s6);grid-template-columns:minmax(0,1fr)}
+.stack{display:grid;grid-template-columns:minmax(0,1fr);gap:var(--s6);align-content:start;min-width:0}
+@container main (min-width:52rem){.cols{grid-template-columns:minmax(0,1fr) 22rem}}
+.sh{display:flex;align-items:center;justify-content:space-between;gap:var(--s3);min-height:var(--tap);margin-bottom:var(--s1)}
+.sh h2{font-size:var(--t-head);font-weight:600}.sh h2:focus{outline:none}
+.sh .n{margin-left:.375rem;font-weight:400;color:var(--text-2)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r3)}
+.list>li{display:flex;flex-wrap:wrap;align-items:center;gap:var(--s3);min-height:3.5rem;padding:var(--s2) var(--s2) var(--s2) var(--s4)}
+.list>li+li{border-top:1px solid var(--line)}
+.body{flex:1 1 7rem;min-width:0}
+.ra{display:flex;align-items:center;gap:var(--s1);margin-left:auto}
+a.row{display:flex;min-width:0;align-items:center;gap:var(--s3);min-height:3.5rem;padding:var(--s2) var(--s4);text-decoration:none}
+a.row:hover{background:color-mix(in srgb,var(--text) 4%,transparent)}
+a.row .chev{color:var(--text-2);margin-left:auto}
+@container main (max-width:15rem){a.row>.i:not(.chev){display:none}}
+.list>li.link{padding:0}.list>li.link>a.row{flex:1;border-radius:inherit}
+.card>.list>li:first-child>a.row{border-radius:var(--r3) var(--r3) 0 0}.card>.list>li:last-child>a.row{border-radius:0 0 var(--r3) var(--r3)}
+.card>.list>li:only-child>a.row{border-radius:var(--r3)}
+
+/* Controls */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:var(--s2);min-height:var(--tap);min-width:var(--tap);padding:.5rem var(--s4);border:0;border-radius:var(--pill);background:var(--surface-2);color:var(--text);font:600 var(--t-body)/1.2 var(--f);text-align:center;text-decoration:none;cursor:pointer}
+.btn.primary{background:var(--accent);color:var(--on-accent)}
+.btn.ghost{background:none;color:var(--accent);padding-inline:var(--s3)}
+.btn.danger{background:none;color:var(--err)}.btn.danger.fill{background:var(--err);color:var(--on-accent)}
+.btn.icon{padding:0}
+.btn:hover:not(:disabled){filter:brightness(.95)}
+.btn:disabled{opacity:.45;cursor:default}
+.acts{display:flex;flex-wrap:wrap;gap:var(--s2)}
+input,select,textarea{width:100%;min-width:0;max-width:100%;min-height:var(--tap);padding:0 var(--s3);border:1px solid var(--line);border-radius:var(--r2);background:var(--surface);color:var(--text);font:400 1rem/1.4 var(--f);appearance:none;-webkit-appearance:none}
+.sel{position:relative;display:block}.sel select{padding-right:2.25rem}.sel .i{position:absolute;right:var(--s3);top:50%;margin-top:-.625rem;pointer-events:none;color:var(--text-2)}
+textarea{min-height:16rem;padding:var(--s3);resize:vertical;line-height:1.5}
+textarea:disabled{background:var(--bg);color:var(--text-2)}
+.chip{display:inline-flex;align-items:center;gap:.25rem;padding:.0625rem .5rem;border-radius:var(--pill);background:var(--surface-2);color:var(--text-2);font-size:var(--t-cap);font-weight:600;white-space:nowrap;vertical-align:1px}
+.chip.active{background:color-mix(in srgb,var(--ok) var(--tint),var(--surface));color:var(--ok)}
+.chip.paused{background:color-mix(in srgb,var(--warn) var(--tint),var(--surface));color:var(--warn)}
+.chip.completed{background:color-mix(in srgb,var(--accent) var(--tint),var(--surface));color:var(--accent)}
+.meter{display:flex;align-items:center;gap:var(--s3);font-size:var(--t-foot);color:var(--text-2);font-variant-numeric:tabular-nums}
+.track{display:block;flex:1;height:.375rem;border-radius:var(--pill);background:var(--surface-2);overflow:hidden}
+.track i{display:block;height:100%;border-radius:inherit;background:var(--accent)}
+.track.hi i{background:var(--warn)}
+.indet{height:.25rem;border-radius:var(--pill);background:var(--surface-2);overflow:hidden}
+.indet i{display:block;width:40%;height:100%;border-radius:inherit;background:var(--accent);animation:slide 1.6s ease-in-out infinite}
+.st{font-size:var(--t-foot);color:var(--text-2)}.st.dirty{color:var(--warn)}.st.ok{color:var(--ok)}.st.err{color:var(--err)}
+.banner{display:flex;flex-wrap:wrap;align-items:center;gap:var(--s2) var(--s3);max-width:70rem;margin:var(--s4) auto 0;padding:var(--s2) var(--s2) var(--s2) var(--s4);border-radius:var(--r2);background:color-mix(in srgb,var(--err) var(--tint),var(--surface));font-size:var(--t-foot)}
+.banner>.i{color:var(--err)}.banner p{flex:1 1 12rem}
+.banner.wait{background:color-mix(in srgb,var(--warn) var(--tint),var(--surface))}.banner.wait>.i{color:var(--warn)}
+.empty{display:grid;justify-items:center;gap:var(--s3);padding:var(--s6) var(--s4);text-align:center;color:var(--text-2)}
+.empty .t{color:var(--text)}
+.skel{height:1rem;border-radius:var(--r1);background:var(--surface-2);animation:pulse 1.4s ease-in-out infinite}
+details>summary{display:inline-flex;align-items:center;gap:var(--s2);min-height:var(--tap);padding:0 var(--s2);border-radius:var(--r2);color:var(--accent);font-weight:600;cursor:pointer;list-style:none}
+details>summary::-webkit-details-marker{display:none}
+details>summary .i{transition:transform .15s}details[open]>summary .i{transform:rotate(90deg)}
+
+/* Wide type: one smaller page title, and the banner on the content's width. */
+@container page (min-width:64rem){.h1{font-size:var(--t-title);font-weight:650}.vh{margin-bottom:var(--s4)}.banner{max-width:68rem}}
+
+/* Solo pages: signed out, sign-in exchange, "finish in Simulator" */
+.solo{min-height:100%;display:grid;place-content:center;justify-items:center;gap:var(--s4);max-width:24rem;margin:0 auto;padding:var(--s6) 0;text-align:center}
+.solo .orb{width:3.5rem;height:3.5rem}
+.app.alone{grid-template:"main" minmax(0,1fr)/minmax(0,1fr)}.app.alone main{border:0}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}

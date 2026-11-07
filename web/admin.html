@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Protagonist · Admin</title>
+<style>
+*{box-sizing:border-box}body{margin:0;color:#222;background:#fff;font:14px/1.5 system-ui,sans-serif;height:100dvh;display:grid;grid-template: auto 1fr auto / 150px 1fr}header{grid-column:1/-1;display:flex;align-items:center;gap:24px;padding:12px 20px;border-bottom:1px solid #ddd}header label{display:flex;align-items:center;gap:8px;min-width:0}header a{margin-left:auto}select{max-width:320px;min-width:0}button,select{font:inherit;color:inherit;background:#fff;border:1px solid #ccc;border-radius:4px;padding:6px 10px}button,a,summary{cursor:pointer}a{color:inherit}button:disabled{color:#777;cursor:default}nav{padding:12px 8px;border-right:1px solid #ddd;display:flex;flex-direction:column;gap:4px}nav button{text-align:left;border:0;background:none}nav button[aria-pressed=true]{background:#eee;font-weight:600}nav button:last-child{margin-top:auto}main{min-width:0;overflow:auto;padding:24px 32px}h1{font-size:22px;font-weight:500;margin:0}h2{font-size:16px;font-weight:500;margin:22px 0 10px}h3{font-size:14px;font-weight:600;margin:0}p{margin:6px 0;overflow-wrap:anywhere}.toolbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap}.toolbar button:first-of-type{margin-left:auto}#status,.muted,small{color:#666}#status{margin:8px 0 22px}.error{color:#a12622}article{padding:12px 0;border-bottom:1px solid #eee}article small{display:block}pre{font:13px/1.6 ui-monospace,monospace;white-space:pre-wrap;overflow-wrap:anywhere;margin:6px 0}.message{white-space:pre-wrap}dl{display:grid;grid-template-columns:minmax(100px,1fr) 2fr;gap:12px;margin:0}dd{margin:0;overflow-wrap:anywhere}dt{color:#666}footer{grid-column:1/-1;padding:10px 20px;border-top:1px solid #ddd;font-size:12px;color:#666}details{margin:16px 0}table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:10px 8px;border-bottom:1px solid #eee;font-weight:400;vertical-align:top}th{color:#666}.table{overflow-x:auto}.file{display:flex;justify-content:space-between;gap:16px}.file a{overflow-wrap:anywhere}[hidden]{display:none!important}
+.model-controls{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.model-controls label{width:100%}.model-controls select{max-width:100%}.costs{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:12px}.costs article{border:1px solid #ddd;border-radius:4px;padding:12px}.costs strong{display:block;font-size:20px;font-weight:500}.costs p{margin:0}.costs small{font-size:12px}
+@media(max-width:600px){body{grid-template-columns:100px 1fr}header{padding:10px 12px;gap:10px;flex-wrap:wrap}header strong{font-size:13px}header label{order:3;width:100%}select{flex:1;max-width:none}nav{padding:8px 4px}nav button{padding:9px 7px;font-size:13px}main{padding:18px 14px}footer{padding:8px 12px}.file{display:block}dl{grid-template-columns:1fr;gap:4px}dd{margin-bottom:12px}}
+@media(pointer:coarse){button,select,summary{min-height:44px}}
+</style></head><body>
+<header><strong>Protagonist</strong><label for="student">Student <select id="student"><option value="">Loading…</option></select></label><a href="/simulator">Student simulator</a></header>
+<nav aria-label="Admin sections"><button data-tab="activity" aria-pressed="true">Activity</button><button data-tab="terminal" aria-pressed="false">Terminal</button><button data-tab="goals" aria-pressed="false">Goals</button><button data-tab="files" aria-pressed="false">Files</button><button data-tab="memory" aria-pressed="false">Memory</button><button data-tab="system" aria-pressed="false">System</button></nav>
+<main><div class="toolbar"><h1 id="title">Activity</h1><button id="delete" hidden>Delete user</button><button id="stop" hidden>Stop current run</button><button id="follow" hidden>Jump to latest</button></div><p id="status" role="status">Loading…</p><div id="content"></div></main>
+<footer id="usage">Usage today (UTC)</footer>
+<script>
+const picker=document.querySelector('#student'),content=document.querySelector('#content'),status=document.querySelector('#status'),main=document.querySelector('main'),stop=document.querySelector('#stop'),follow=document.querySelector('#follow'),usage=document.querySelector('#usage');
+const tabs=['activity','terminal','goals','files','memory','system'];
+let selected='',tab='activity',generation=0,timer,controller,lastSuccess=0,signature='',studentSignature='',job=null,following=true;
+let modelCurrent='',modelDraft='',modelSaving=false,modelNotice='',modelError=false,modelRevision=0;
+const element=(tag,text,cls)=>{const n=document.createElement(tag);if(text!==undefined)n.textContent=text;if(cls)n.className=cls;return n;};
+const date=value=>value?new Date(value).toLocaleString():'Unknown';
+const age=value=>value?Math.max(0,Math.floor((Date.now()-Number(value))/1000))+'s ago':'never';
+const short=value=>value?value.replace(/^sha256:/,'').slice(0,12):'Unknown';
+const names={activity:'Activity',terminal:'Terminal',goals:'Goals',files:'Files',memory:'Memory',system:'System'};
+function entry(title,text,meta){const a=element('article');a.append(element('h3',title));if(meta)a.append(element('small',meta));if(text)a.append(element('p',text,'message'));return a;}
+function empty(parent,text){parent.append(element('p',text,'muted'));}
+function jobState(j){if(j.done)return j.outcome==='success'?'Completed':({failed:'Failed',cancelled:'Stopped',skipped:'Skipped',unknown:'Completed · outcome unknown'}[j.outcome]||'Completed · outcome unknown');if(j.cancel)return 'Stopping';if(j.error_code)return 'Retrying';if(j.responding)return 'Sending';return j.submitted?'Working':'Queued';}
+const errors={worker_unavailable:'Worker unavailable',delivery_abandoned:'Delivery abandoned'};
+function renderOverview(data){
+  const frag=document.createDocumentFragment();
+  if(data.unavailable)empty(frag,data.student.disconnected?'Student is disconnected.':'Worker unavailable. Retrying automatically.');
+  if(tab==='activity'){
+    const history=element('details');history.open=(data.jobs||[]).some(j=>!j.done||j.outcome==='failed');history.append(element('summary','Recent requests and delivery'));
+    for(const j of data.jobs||[]){const delivery=j.delivered?'Reply delivered '+date(j.delivered):j.done?(j.outcome==='skipped'?'No reply needed':j.outcome==='unknown'?'Delivery history unavailable':'Reply not confirmed delivered'):(j.sent?j.sent+' reply part(s) delivered':'Reply not yet delivered');
+      const a=entry('#'+j.id+' · '+jobState(j),'',[date(j.created),j.kind,delivery,errors[j.error_code],!j.done&&j.error_code?'Next retry '+date(j.retry):''].filter(Boolean).join(' · '));if(j.outcome==='failed'||j.error_code)a.classList.add('error');history.append(a);}
+    if(!data.jobs?.length)empty(history,'No requests yet.');frag.append(history);
+    for(const item of data.activity||[])frag.append(entry({student:data.student.name,assistant:'Protagonist',action:'Action',reminder:'Reminder'}[item.who]||'Activity',item.text,item.at?date(item.at):''));
+    if(!data.activity?.length&&!data.unavailable)empty(frag,'No conversation activity yet.');
+  }
+  if(tab==='goals'){
+    for(const g of data.goals||[]){const a=entry(g.goal,g.next?'Next: '+g.next.step:'No next step recorded.',g.status+' · '+g.steps.done+' / '+g.steps.total+' steps done');
+      if(g.target)a.append(element('p','Student target: '+g.target+' (not an institutional deadline)'));
+      if(g.next?.target)a.append(element('small','Next step due '+g.next.target+(g.next.owner?' · '+g.next.owner:'')));
+      for(const d of g.deadlines||[])a.append(element('p',d.what+': '+d.date));frag.append(a);}
+    if(!data.goals?.length)empty(frag,'No goals recorded.');frag.append(element('h2','Upcoming reminders'));
+    for(const r of data.reminders||[])frag.append(entry(r.note,'',new Date(r.at).toLocaleString(undefined,{timeZone:r.zone})+' · '+r.zone));
+    if(!data.reminders?.length)empty(frag,'No upcoming reminders.');
+  }
+  if(tab==='files')for(const [label,files]of [['Saved files',data.files],['Uploaded by student',data.uploads]]){
+    frag.append(element('h2',label));for(const file of files||[]){const a=element('article',undefined,'file'),link=element('a',file.name);link.href='/admin/students/'+encodeURIComponent(selected)+'/files?path='+encodeURIComponent(file.path);a.append(link,element('small',Math.ceil(file.size/1024)+' KB · '+date(file.at)));frag.append(a);}if(!files?.length)empty(frag,'No files.');
+  }
+  if(tab==='memory'){
+    frag.append(element('h2','What the assistant remembers'),element('pre',data.memory||'No memory recorded.'));
+    const soul=element('details');soul.append(element('summary','Personality instructions · SOUL.md'),element('pre',data.soul||'No personality instructions available.'));frag.append(soul);
+  }
+  return frag;
+}
+function renderTerminal(data){const frag=document.createDocumentFragment();for(const item of data.items||[]){const a=entry(item.label+' · '+item.state);a.append(element('pre',(item.kind==='tool'&&item.label==='bash'?'$ ':'')+item.text));if(item.output)a.append(element('pre',item.output));if(['error','interrupted'].includes(item.state))a.classList.add('error');frag.append(a);}if(!data.items?.length)empty(frag,'No recent activity.');return frag;}
+const dollars=value=>value>0&&value<0.0001?'< $0.0001':'$'+value.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:4});
+function updateModelControls(){
+  const input=document.querySelector('#model'),button=document.querySelector('#model-save'),notice=document.querySelector('#model-status');
+  if(!input)return;input.value=modelDraft;input.disabled=modelSaving;button.disabled=modelSaving||modelDraft===modelCurrent;button.textContent=modelSaving?'Saving…':'Apply';
+  notice.textContent=modelNotice||'Applies to all students. Work already running may finish with the previous model.';notice.className=modelError?'error':'muted';
+}
+async function saveModel(event){
+  event.preventDefault();if(modelSaving||modelDraft===modelCurrent)return;
+  const wanted=modelDraft;modelSaving=true;modelNotice='Saving…';modelError=false;updateModelControls();
+  try{
+    const r=await fetch('/admin/model',{method:'POST',headers:{'Content-Type':'application/json','X-Protagonist':'1'},body:JSON.stringify({model:wanted}),signal:AbortSignal.timeout(12000)});
+    if(r.status===401||r.redirected){location.assign('/simulator');return;}
+    const data=await r.json();if(!r.ok)throw Error(data.error||'Unable to save the model. Try again.');
+    if(data.selected!==wanted)throw Error('The selected model was not confirmed. Try again.');
+    modelCurrent=data.selected;modelDraft=data.selected;modelRevision++;modelNotice='Saved. This model applies to all students.';
+  }catch(error){modelNotice=error.name==='TimeoutError'?'Save timed out. Check the current selection before trying again.':error.message||'Unable to save the model. Try again.';modelError=true;}
+  finally{modelSaving=false;updateModelControls();}
+}
+function renderModels(data){
+  const frag=document.createDocumentFragment(),form=element('form',undefined,'model-controls'),label=element('label','Model for all students'),input=element('select'),button=element('button','Apply'),notice=element('p',undefined,'muted');
+  label.htmlFor='model';input.id='model';input.setAttribute('aria-describedby','model-status');button.id='model-save';button.type='submit';notice.id='model-status';notice.setAttribute('role','status');
+  for(const option of data.model.options)input.append(new Option(option.name,option.id));
+  if(!modelDraft||modelDraft===modelCurrent)modelDraft=data.model.selected;modelCurrent=data.model.selected;
+  input.value=modelDraft;input.disabled=modelSaving;button.disabled=modelSaving||modelDraft===modelCurrent;button.textContent=modelSaving?'Saving…':'Apply';
+  notice.textContent=modelNotice||'Applies to all students. Work already running may finish with the previous model.';notice.className=modelError?'error':'muted';
+  input.onchange=()=>{modelDraft=input.value;modelNotice='';modelError=false;updateModelControls();};form.onsubmit=saveModel;form.append(label,input,button);frag.append(form,notice,element('h2','Recorded model spend'));
+  const costs=element('div',undefined,'costs');
+  for(const [label,key]of [['Today','today'],['This month','month'],['Since tracking','total']]){
+    const value=data.costs[key],card=element('article');card.append(element('h3',label),element('strong',dollars(value.cost)),element('small',value.requests+' requests · '+value.unpriced+' with cost unavailable'));costs.append(card);
+  }
+  frag.append(costs,element('p','USD · UTC periods · Tracking since '+date(data.costs.since),'muted'),element('p','Only reported charges are included. Costs may be unavailable for pending, interrupted or failed requests.','muted'));
+  if(data.costs.models.length){
+    const wrap=element('div',undefined,'table'),table=element('table'),head=element('tr');
+    for(const label of ['Model','Requests','Recorded spend','Cost unavailable'])head.append(element('th',label));table.append(head);
+    for(const value of data.costs.models){const row=element('tr');row.append(element('td',data.model.options.find(option=>option.id===value.model)?.name||value.model),element('td',value.requests),element('td',dollars(value.cost)),element('td',value.unpriced));table.append(row);}
+    wrap.append(table);frag.append(wrap);
+  }
+  return frag;
+}
+function renderSystem(data){
+  const frag=document.createDocumentFragment(),dl=element('dl');
+  frag.append(renderModels(data),element('h2','Runtime'));
+  for(const [k,v]of [['Controller','Responding · uptime '+Math.floor(data.uptime/60)+'m'],['Docker',data.docker],['Student simulator','Local browser chat'],['OpenRouter',data.modelConfigured?'Configured':'Add a key in the simulator'],['Pending / retrying / failed (24h)',data.pending+' / '+data.retrying+' / '+data.failed],['Controller image',short(data.controllerImage)],['Controller started',date(data.startedAt)],['Current worker image',short(data.workerImage)]])dl.append(element('dt',k),element('dd',v));
+  frag.append(dl,element('h2','Students'));const wrap=element('div',undefined,'table'),table=element('table'),head=element('tr');for(const x of ['Student','State','Work','Version'])head.append(element('th',x));table.append(head);
+  for(const s of data.students){const row=element('tr'),cell=element('td'),link=element('a',s.name);link.href='#student='+encodeURIComponent(s.id)+'&tab=activity';cell.append(link);row.append(cell,element('td',s.disconnected?'Disconnected':s.state),element('td',s.pending+' pending · '+s.failed+' failed (24h)'),element('td',s.current===null?'Unknown':s.current?'Current':'Update pending'));table.append(row);}
+  wrap.append(table);frag.append(wrap);return frag;
+}
+async function get(path,signal){const r=await fetch(path,{cache:'no-store',signal});if(r.status===401||r.redirected){location.assign('/simulator');throw Error('Open the local simulator.');}const data=await r.json();if(!r.ok)throw Error(data.error||'Unable to refresh.');return data;}
+function navigate(){
+  const params=new URLSearchParams(location.hash.slice(1));selected=params.get('student')||'';tab=tabs.includes(params.get('tab'))?params.get('tab'):'activity';
+  generation++;clearTimeout(timer);controller?.abort();signature='';lastSuccess=0;job=null;following=true;content.replaceChildren();stop.hidden=true;follow.hidden=true;usage.textContent='Usage today (UTC)';status.textContent='Loading…';
+  document.querySelector('#title').textContent=names[tab];document.querySelectorAll('nav button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.tab===tab)));poll(generation);
+}
+async function poll(version){
+  controller=new AbortController();const signal=AbortSignal.any([controller.signal,AbortSignal.timeout(12000)]),revision=modelRevision;
+  try{
+    const list=await get('/admin/students',signal);if(version!==generation)return;
+    if(!selected&&list.students.length)selected=list.students[0].id;
+    const remove=document.querySelector('#delete');remove.hidden=!selected||tab==='system';
+    const choices=JSON.stringify(list.students.map(s=>[s.id,s.name,s.channels,s.disconnected,s.deleting]));
+    if(choices!==studentSignature){picker.replaceChildren();if(!list.students.length)picker.append(new Option('No students yet',''));for(const s of list.students)picker.append(new Option((s.name||'New student')+(s.channels?.length?' · '+s.channels.join(' + '):'')+(s.deleting?' · deletion incomplete':s.disconnected?' · disconnected':''),s.id));studentSignature=choices;}picker.value=selected;
+    let data,overview;
+    if(tab==='system')data=await get('/admin/system',signal);
+    else if(selected){
+      overview=await get('/admin/students/'+encodeURIComponent(selected)+'/overview'+(tab==='terminal'?'?runtime=0':''),signal);
+      data=tab==='terminal'?await get('/admin/students/'+encodeURIComponent(selected)+'/activity',signal):overview;
+    }else{status.textContent='No students connected yet.';content.replaceChildren();usage.textContent='';return;}
+    if(version!==generation||(tab==='system'&&revision!==modelRevision))return;
+    lastSuccess=Date.now();
+    status.className='';
+    if(tab==='system'){status.textContent='All students · Updated '+new Date(lastSuccess).toLocaleTimeString();usage.textContent='Observed runtime state · Image IDs identify running versions';}
+    else{
+      const current=overview.current;
+      job=current&&!current.responding&&current.submitted>0?current:null;
+      status.textContent=[overview.student.disconnected?'Disconnected':tab!=='terminal'&&overview.unavailable?'Worker unavailable':data.state||overview.state||'Unknown',current?'Request #'+current.id+' · '+jobState(current):'',overview.pending+' pending',overview.failed?overview.failed+' failed in 24h':'',overview.lastActivity?'Last request '+date(overview.lastActivity):'', 'Updated '+new Date(lastSuccess).toLocaleTimeString()].filter(Boolean).join(' · ');
+      if((tab!=='terminal'&&overview.unavailable)||overview.retrying||overview.failed)status.className='error';
+      stop.hidden=tab!=='terminal'||!job;stop.disabled=!!job?.cancel;stop.textContent=job?.cancel?'Stopping…':'Stop current run';
+      usage.textContent='Today (UTC) · '+Object.entries(overview.usage).filter(([k])=>['messages','model','documents'].includes(k)).map(([k,v])=>k+': '+v.used+' / '+v.limit).join(' · ');
+    }
+    const next=JSON.stringify(tab==='terminal'?{items:data.items,truncated:data.truncated}:tab==='system'?{...data,observedAt:null,uptime:Math.floor(data.uptime/60)}:{...data,observedAt:null});
+    if(next!==signature){const scroll=main.scrollTop,open=[...content.querySelectorAll('details')].map(x=>x.open);content.replaceChildren(tab==='terminal'?renderTerminal(data):tab==='system'?renderSystem(data):renderOverview(data));if(signature)content.querySelectorAll('details').forEach((d,i)=>{if(i<open.length)d.open=open[i];});signature=next;main.scrollTop=tab==='terminal'&&following?main.scrollHeight:scroll;}
+    follow.hidden=tab!=='terminal'||following;
+    if(tab==='terminal')status.textContent+=' · Read only'+(data.truncated?' · Older entries omitted':'');
+  }catch(error){if(version===generation&&error.name!=='AbortError'){status.className='error';status.textContent=(error.message||'Unable to refresh')+' · '+(lastSuccess?'Last updated '+age(lastSuccess):'No current data')+' · Retrying…';stop.hidden=true;}}
+  finally{if(version===generation)timer=setTimeout(()=>poll(version),tab==='terminal'?1000:5000);}
+}
+picker.addEventListener('change',()=>{location.hash=new URLSearchParams({student:picker.value,tab}).toString();});
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{location.hash=new URLSearchParams({student:selected,tab:b.dataset.tab}).toString();});
+main.addEventListener('scroll',()=>{if(tab==='terminal'){following=main.scrollHeight-main.scrollTop-main.clientHeight<60;follow.hidden=following;}});
+follow.onclick=()=>{following=true;main.scrollTop=main.scrollHeight;follow.hidden=true;};
+document.querySelector('#delete').onclick=async()=>{
+  const student=selected,name=picker.selectedOptions[0]?.textContent;if(!student)return;
+  if(prompt('Permanently delete '+name+'? This removes their account, conversations, goals, files, reminders and browser sessions.  Type DELETE to confirm.')!=='DELETE')return;
+  const button=document.querySelector('#delete');button.disabled=true;status.textContent='Deleting account and files…';
+  try{const r=await fetch('/admin/students/'+encodeURIComponent(student)+'/delete',{method:'POST',headers:{'Content-Type':'application/json','X-Protagonist':'1'},body:JSON.stringify({confirm:student})});const d=await r.json();if(!r.ok)throw Error(d.error||'Unable to delete this account.');selected='';studentSignature='';location.hash='';navigate();}catch(e){alert(e.message);}finally{button.disabled=false;}
+};
+stop.onclick=async()=>{const id=job?.id,student=selected,version=generation;if(!id)return;stop.disabled=true;try{const r=await fetch('/admin/students/'+encodeURIComponent(student)+'/stop',{method:'POST',headers:{'Content-Type':'application/json','X-Protagonist':'1'},body:JSON.stringify({id})});if(r.status===401){location.assign('/simulator');return;}const data=await r.json();if(!r.ok)throw Error(data.error);if(version===generation){status.textContent='Stop requested. Waiting for the worker…';stop.textContent='Stopping…';}}catch(e){if(version===generation){status.textContent=e.message;stop.disabled=false;}}};
+window.addEventListener('hashchange',navigate);navigate();
+</script></body></html>

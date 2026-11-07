@@ -1,0 +1,33 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><meta name="robots" content="noindex"><title>Your plan · Protagonist</title>
+<meta name="theme-color" content="#F4F4F6" media="(prefers-color-scheme: light)"><meta name="theme-color" content="#0D0D10" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3CradialGradient id='g' cx='.32' cy='.3'%3E%3Cstop offset='0' stop-color='%232FC4B4'/%3E%3Cstop offset='.72' stop-color='%236D62FF'/%3E%3C/radialGradient%3E%3C/defs%3E%3Ccircle cx='16' cy='16' r='15' fill='url(%23g)'/%3E%3C/svg%3E">
+<style>/*{{STUDENT_CSS}}*/</style>
+<style>
+/* The reader: the shared shell (Files current), a way back, the title and Download. The sandboxed plan scrolls inside its own frame. */
+.reader{display:flex;flex-direction:column;padding-bottom:var(--s4)}.reader .pbar{flex-wrap:wrap}
+.reader .view{flex:1;display:flex;flex-direction:column;min-height:0;padding-top:var(--s4)}
+.pbar{display:flex;align-items:center;gap:var(--s2);margin-bottom:var(--s3)}
+.pbar h1{flex:1;min-width:0;font-size:var(--t-head);font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.back{margin-left:calc(-1 * var(--s3))}
+#error{padding:var(--s4) 0}
+/* The frame takes the room that is left and scrolls its own plan; with very large text the page scrolls to reach the rest. */
+iframe{flex:1 1 auto;min-height:min(18rem,60dvh);width:100%;border:1px solid var(--line);border-radius:var(--r3);background:var(--paper);display:block}
+</style></head><body>
+<div class="app" id="app">
+<!--{{STUDENT_HEADER}}-->
+<main id="main" tabindex="-1" class="reader" data-scroll><div class="view">
+  <div class="pbar">
+    <a class="btn ghost back" href="/me#files"><svg class="i" aria-hidden="true"><use href="#i-back"/></svg><span class="sr">Back to </span>Files</a>
+    <h1 id="title">Your plan</h1>
+    <a class="btn icon ghost" id="download" aria-label="Download" download><svg class="i" aria-hidden="true"><use href="#i-dl"/></svg></a>
+  </div>
+  <p id="error" class="m" role="status">Opening your plan…</p><iframe id="plan" title="Your personal goal plan" sandbox="allow-popups allow-popups-to-escape-sandbox" hidden></iframe>
+</div></main>
+</div>
+<script>/*{{STUDENT_JS}}*/</script>
+<script>
+(async()=>{const path=new URLSearchParams(location.search).get('path')||'documents/your-plan.html',url='/me/api/preview?path='+encodeURIComponent(path);
+const name=path==='documents/your-plan.html'?'Your plan':path.split('/').pop();document.getElementById('title').textContent=name;document.title=name+' · Protagonist';
+document.getElementById('download').href='/me/api/files?path='+encodeURIComponent(path);document.getElementById('download').setAttribute('aria-label','Download '+name);
+try{const r=await fetch(url);if(!r.ok){const d=await r.json();throw Error(d.error||'Unable to open this plan.');}const frame=document.getElementById('plan');frame.src=url;frame.hidden=false;document.getElementById('error').hidden=true;}catch(e){document.getElementById('error').textContent=e.message;}})();
+</script></body></html>
