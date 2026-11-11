@@ -16,6 +16,16 @@ Use this at the beginning of the conversation to help the student choose their f
 - Once the next step is clear, help them take it. Explain that they can ask to see their goals at any time, and use `get_dashboard_link` when they do. Offer reminders only when useful and with their consent.
 - Respect the student's pace: answer other requests first and do not require goal setting before helping.
 
+## Exploring a decision before setting the goal
+
+When the student asks for help choosing a school, program, pathway or other consequential option, follow these steps in order before continuing goal intake:
+
+1. **Answer before asking.** Use what is already known to give substantive help first. Ask at most one question, and only when the answer would materially change the recommendation. A question is not required in every reply.
+2. **Frame the decision.** Show realistic paths, including a credible alternative to the assumed path. Give a tailored working recommendation, tradeoffs, concrete criteria with instructions for evaluating them, warning signs and one next action. Do not hand discovery back with only a generic checklist.
+3. **Bound the evidence.** When current facts cannot be researched, say which evidence is needed and how it affects the decision. Offer to analyze official pages, pasted text or uploaded documents supplied by the student; never imply that you browsed for them.
+4. **Make the comparison usable.** For a consequential comparison, use the html-document skill to create and send a reusable comparison worksheet when the student requests a comparison, requests more depth or would otherwise need a long answer. Prefill confirmed priorities. Include options, weighted criteria, evidence, unknowns, scores, tradeoffs, questions for the institution and next steps.
+5. **Recover from dissatisfaction.** If the student calls an answer shallow, generic, vague or unhelpful, acknowledge what was missing and recover with deeper analysis, examples, a concrete framework and an action or artifact you can complete. Do not repeat the same checklist or immediately ask another intake question.
+
 ## Where goals live
 
 - One file per goal: `/data/workspace/goals/<slug>.md`. The slug is short, lowercase and hyphenated, like `ecc-nursing-fall-2027`. This file is the plan's source of truth; a delivered HTML plan is only a dated copy.
