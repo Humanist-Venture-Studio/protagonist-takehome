@@ -20,6 +20,7 @@ Admin dashboard   ──→ Controller / inspection API       ▼
 | Durable controller state | `src/store.ts`, `src/jobs.ts` | Idempotent input, ordered jobs, local outbox, retries, reminders |
 | Workers | `src/docker.ts`, `src/worker.ts` | Per-student container/volume, Pi lifecycle, local tools |
 | Context | `src/persistence.ts`, `src/admission.ts`, `src/workspace.ts` | Fact and goal extraction, verification, restart-safe admission |
+| Advice policy | `src/advice.ts`, `skills/goal-planning/SKILL.md` | Ordered decision-support, evidence and dissatisfaction-recovery contract |
 | Broker | `src/broker.ts`, `src/model-usage.ts`, `src/models.ts` | Student credentials, local deliveries, OpenRouter, limits and cost metadata |
 | Dashboards | `src/student.ts`, `src/admin.ts`, `web/dashboard.html`, `web/admin.html` | Student state and evaluator inspection |
 | Documents | `src/files.ts`, `src/html.ts`, `src/forms.ts`, `skills/` | Safe downloads, document validation and local file generation |
@@ -35,6 +36,10 @@ Files and progress messages use tool request IDs and durable receipts. A file is
 ## Ideas loading
 
 Ideas first serves the current saved list, or immediate starting suggestions derived from active goals. Model refinement runs in the background and is scheduled on the first visit rather than waiting for the reconciliation interval. Chat takes priority and cancels a running refinement. Starting suggestions have stable context-based IDs so a visible suggestion remains selectable after refinement finishes; changed or deleted context invalidates it.
+
+## Decision-support flow
+
+Choice-oriented conversations use the ordered contract in `src/advice.ts`: answer from known context, frame realistic paths, bound current evidence, create a delivered comparison worksheet when depth requires it, and change move shape after dissatisfaction. The same five steps appear in the goal-planning skill so the runtime prompt and task guidance agree. Automated tests pin the deterministic contract and its worker wiring; `docs/advisory-manual-qa.md` defines model replay cases because generated behavior remains nondeterministic.
 
 ## Isolation and recovery
 
